@@ -15,11 +15,13 @@ st.set_page_config(
 
 # Header & Branding (Female Persona)
 st.title("🌸 Gunnu AI")
-st.caption("Aapki apni intelligent assistant — Super Fast, Smart aur 100% Real Information ke sath ✨")
+st.caption("Aapki apni intelligent assistant — Created by Mohit Pareek ✨")
 
+# 🔑 In-Built Default API Key (Taaki kisi bhi user ko key na daalni pade)
+DEFAULT_API_KEY = "AQ.Ab8RN6KdbZRbIhg07KXEAvqOM2PJovNvN1n7FK1jB7aacCFEfg"
 KEY_FILE = os.path.join(os.path.dirname(__file__), "api_key.txt")
 
-# Pehle se saved key load karein (Secrets / Environment / Local File)
+# Pehle se saved key load karein (Secrets / Environment / Local File / Default)
 saved_key = ""
 try:
     if "GEMINI_API_KEY" in st.secrets:
@@ -37,64 +39,28 @@ if not saved_key and os.path.exists(KEY_FILE):
     except Exception:
         pass
 
-# Sidebar settings
+# Fallback to default key
+if not saved_key:
+    saved_key = DEFAULT_API_KEY
+
+# Sidebar settings (Clean & User-friendly)
 with st.sidebar:
     st.header("⚙️ Gunnu Settings")
-    api_provider = st.selectbox(
-        "AI Engine Chunein:",
-        ["Google Gemini (Free API)", "Ollama (100% Offline & Unlimited Local)"]
-    )
+    st.success("🌸 Gunnu 100% Online & Active Hai!")
     
-    enable_web_search = st.checkbox("🔍 Live Web Search Enable Karein", value=True)
+    enable_web_search = st.checkbox("🔍 Live Web Search (Taaza Khabar)", value=True)
     
-    if api_provider == "Google Gemini (Free API)":
+    with st.expander("🛠️ Advanced Settings (Optional)"):
         gemini_api_key = st.text_input(
-            "Gemini API Key daalein:",
+            "Custom API Key:",
             value=saved_key,
             type="password",
-            help="Aap aistudio.google.com se bilkul FREE API key le sakte hain."
+            help="By default Gunnu active hai, isko chhedne ki zaroorat nahi hai."
         )
-        
-        # Key ko permanently auto-save karein
-        if gemini_api_key and gemini_api_key != saved_key:
-            try:
-                with open(KEY_FILE, "w") as f:
-                    f.write(gemini_api_key.strip())
-                st.success("✅ Key permanently save ho gayi hai!")
-            except Exception:
-                pass
-        elif saved_key:
-            st.caption("🔒 Key permanently saved hai (Dobara daalne ki zaroorat nahi)")
+        if not gemini_api_key:
+            gemini_api_key = DEFAULT_API_KEY
 
-        st.markdown("[👉 Free Gemini API Key Yahan Se Lein](https://aistudio.google.com/)")
-
-        selected_model = "gemini-3.8-flash"
-        if gemini_api_key:
-            try:
-                from google import genai
-                # Cache client in session to avoid reconnecting every turn
-                if "gemini_client" not in st.session_state or st.session_state.get("cached_key") != gemini_api_key:
-                    st.session_state.gemini_client = genai.Client(api_key=gemini_api_key)
-                    st.session_state.cached_key = gemini_api_key
-                    
-                if "user_models" not in st.session_state:
-                    models = []
-                    for m in st.session_state.gemini_client.models.list():
-                        m_name = m.name.replace("models/", "")
-                        if "embed" not in m_name.lower() and "aqa" not in m_name.lower():
-                            models.append(m_name)
-                    st.session_state.user_models = models
-                
-                if st.session_state.get("user_models"):
-                    selected_model = st.selectbox(
-                        "Active Model (Default Fast Flash):",
-                        st.session_state.user_models,
-                        index=0
-                    )
-            except Exception:
-                selected_model = "gemini-3.8-flash"
-    else:
-        selected_model = "llama3.2"
+selected_model = "gemini-3.8-flash"
 
 # ⚡ ULTRA-FAST INSTANT ENGINE (< 0.1 sec) for Common Queries
 def get_instant_response(query):
@@ -104,7 +70,8 @@ def get_instant_response(query):
     # 1. Creator question (Mohit Pareek)
     creator_triggers = [
         "kisne banaya", "who made you", "who created", "who is your creator", 
-        "creator", "tumhe kisne banaya", "tumhe kisne bnaya", "kisne banaya hai", "kiska chatbot"
+        "creator", "tumhe kisne banaya", "tumhe kisne bnaya", "kisne banaya hai", "kiska chatbot",
+        "who made this", "developer kaun hai"
     ]
     if any(k in q for k in creator_triggers):
         return "Mujhe Gunnu ke chacha Mohit Pareek ne banaya hai! 🌸😊"
@@ -234,83 +201,50 @@ if prompt := st.chat_input("Gunnu se kuch bhi poochhein..."):
 
         full_response = ""
         try:
-            if api_provider == "Google Gemini (Free API)":
-                if not gemini_api_key:
-                    full_response = "⚠️ Kripya sidebar me apni Free Gemini API Key daalein taaki main active ho sakoon! (Aap Google AI Studio se 1-minute me free key le sakti/sakte hain)."
-                    message_placeholder.markdown(full_response)
-                else:
-                    client = st.session_state.get("gemini_client")
-                    if not client:
-                        from google import genai
-                        client = genai.Client(api_key=gemini_api_key)
-                        st.session_state.gemini_client = client
+            from google import genai
+            client = st.session_state.get("gemini_client")
+            if not client:
+                client = genai.Client(api_key=gemini_api_key)
+                st.session_state.gemini_client = client
 
-                    combined_prompt = f"{system_prompt}{web_context}\nUser Question: {prompt}"
-                    
-                    models_to_try = [selected_model]
-                    if "user_models" in st.session_state:
-                        for m in st.session_state.user_models:
-                            if m not in models_to_try:
-                                models_to_try.append(m)
-                    if "gemini-3.8-flash" not in models_to_try:
-                        models_to_try.append("gemini-3.8-flash")
-
-                    last_error = None
-                    with st.spinner("Gunnu soch rahi hai... 🌸"):
-                        for model_name in models_to_try:
-                            try:
-                                # Ultra-Fast Streaming: Live type hota hua aayega
-                                response_stream = client.models.generate_content_stream(
-                                    model=model_name,
-                                    contents=combined_prompt
-                                )
-                                def stream_text():
-                                    for chunk in response_stream:
-                                        if chunk.text:
-                                            yield chunk.text
-                                
-                                full_response = message_placeholder.write_stream(stream_text())
-                                if full_response:
-                                    break
-                            except Exception as e:
-                                try:
-                                    resp = client.models.generate_content(
-                                        model=model_name,
-                                        contents=combined_prompt
-                                    )
-                                    if resp and resp.text:
-                                        full_response = resp.text
-                                        message_placeholder.markdown(full_response)
-                                        break
-                                except Exception as inner_e:
-                                    last_error = inner_e
-                                    continue
-                                
-                        if not full_response:
-                            full_response = f"⚠️ Error: {str(last_error)}"
-                            message_placeholder.markdown(full_response)
-
-            else:
-                # Local Ollama connection
-                ollama_url = "http://localhost:11434/api/generate"
-                payload = {
-                    "model": "llama3.2",
-                    "prompt": f"{system_prompt}{web_context}\nUser: {prompt}\nGunnu:",
-                    "stream": False
-                }
-                
-                req = urllib.request.Request(
-                    ollama_url,
-                    data=json.dumps(payload).encode('utf-8'),
-                    headers={'Content-Type': 'application/json'}
-                )
-                try:
-                    with urllib.request.urlopen(req) as resp:
-                        res_data = json.loads(resp.read().decode('utf-8'))
-                        full_response = res_data.get('response', '')
-                        message_placeholder.markdown(full_response)
-                except Exception:
-                    full_response = "⚠️ Ollama se connect nahi ho pa rahi hoon! Check karein ki aapne terminal me `ollama run llama3.2` start kiya hai ya nahi."
+            combined_prompt = f"{system_prompt}{web_context}\nUser Question: {prompt}"
+            
+            # Candidate models for fallback
+            models_to_try = [selected_model, "gemini-2.0-flash", "gemini-3.8-flash"]
+            last_error = None
+            
+            with st.spinner("Gunnu soch rahi hai... 🌸"):
+                for model_name in models_to_try:
+                    try:
+                        # Ultra-Fast Streaming: Live type hota hua aayega
+                        response_stream = client.models.generate_content_stream(
+                            model=model_name,
+                            contents=combined_prompt
+                        )
+                        def stream_text():
+                            for chunk in response_stream:
+                                if chunk.text:
+                                    yield chunk.text
+                        
+                        full_response = message_placeholder.write_stream(stream_text())
+                        if full_response:
+                            break
+                    except Exception as e:
+                        try:
+                            resp = client.models.generate_content(
+                                model=model_name,
+                                contents=combined_prompt
+                            )
+                            if resp and resp.text:
+                                full_response = resp.text
+                                message_placeholder.markdown(full_response)
+                                break
+                        except Exception as inner_e:
+                            last_error = inner_e
+                            continue
+                        
+                if not full_response:
+                    full_response = f"⚠️ Error: {str(last_error)}"
                     message_placeholder.markdown(full_response)
 
         except Exception as err:
