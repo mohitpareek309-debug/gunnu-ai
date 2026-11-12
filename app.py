@@ -137,7 +137,24 @@ def call_gemini_api(api_key, prompt_text, system_instruction=""):
             "Authorization": f"Bearer {api_key_clean}",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
-        models_groq = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+        # Dynamically fetch active models directly from Groq
+        models_groq = []
+        try:
+            m_req = urllib.request.Request("https://api.groq.com/openai/v1/models", headers=headers)
+            with urllib.request.urlopen(m_req, timeout=5) as m_resp:
+                m_data = json.loads(m_resp.read().decode("utf-8"))
+                models_groq = [
+                    m["id"] for m in m_data.get("data", [])
+                    if "whisper" not in m["id"].lower() and "guard" not in m["id"].lower()
+                ]
+                # Prioritize versatile and 70b/8b models
+                models_groq.sort(key=lambda x: (not ("versatile" in x or "70b" in x), not ("instant" in x or "8b" in x)))
+        except Exception:
+            pass
+
+        if not models_groq:
+            models_groq = ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "gemma2-9b-it"]
+
         last_groq_err = None
         for g_model in models_groq:
             payload = {
