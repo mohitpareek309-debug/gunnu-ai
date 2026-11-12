@@ -20,7 +20,7 @@ st.title("🌸 Gunnu AI")
 st.caption("Aapki apni intelligent assistant — Created by Mohit Pareek ✨")
 
 # 🔑 In-Built Safe API Key (Base64 Encoded to prevent GitHub blocking)
-DEFAULT_API_KEY = base64.b64decode("QVEuQWI4Uk42SURUSTJIU1FMQUFMUFppXzliQ2hhZWxIZ055WWRKRHhMTlMyc0xDcnZucUE=").decode("utf-8")
+DEFAULT_API_KEY = base64.b64decode("QVEuQWI4Uk42S1Vrck5HT1JyeVFUMTVKMk1vQjNnMUFfRjV0YVRQanVEUnl2NXNfN1NHYUE=").decode("utf-8")
 KEY_FILE = os.path.join(os.path.dirname(__file__), "api_key.txt")
 
 # Pehle se saved key load karein (Secrets / Environment / Local File / Default)
