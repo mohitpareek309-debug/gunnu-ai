@@ -23,30 +23,13 @@ st.caption("Aapki apni intelligent assistant — Created by Mohit Pareek ✨")
 DEFAULT_API_KEY = base64.b64decode("Z3NrXzFXOUJWVTJ0NjNoM2wwU0dvNGZJV0dkeWIzRllidVk4aFNrY1dGM3FORHh6SnRJMWVQVmw=").decode("utf-8")
 KEY_FILE = os.path.join(os.path.dirname(__file__), "api_key.txt")
 
-# Pehle se saved key load karein (Secrets / Environment / Local File / Default)
-saved_key = ""
+# Groq key ko 100% default priority dein (Google ki purani broken key ko ignore karein)
+saved_key = DEFAULT_API_KEY
 try:
     if "GROQ_API_KEY" in st.secrets:
         saved_key = st.secrets["GROQ_API_KEY"].strip()
-    elif "GEMINI_API_KEY" in st.secrets:
-        saved_key = st.secrets["GEMINI_API_KEY"].strip()
 except Exception:
     pass
-
-if not saved_key:
-    saved_key = os.environ.get("GROQ_API_KEY", "") or os.environ.get("GEMINI_API_KEY", "")
-    saved_key = saved_key.strip()
-
-if not saved_key and os.path.exists(KEY_FILE):
-    try:
-        with open(KEY_FILE, "r") as f:
-            saved_key = f.read().strip()
-    except Exception:
-        pass
-
-# Fallback to default verified key
-if not saved_key:
-    saved_key = DEFAULT_API_KEY
 
 # Sidebar settings (Clean & User-friendly)
 with st.sidebar:
