@@ -134,25 +134,38 @@ def call_gemini_api(api_key, prompt_text, system_instruction=""):
         url = "https://api.groq.com/openai/v1/chat/completions"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key_clean}"
+            "Authorization": f"Bearer {api_key_clean}",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
-        payload = {
-            "model": "llama-3.3-70b-versatile",
-            "messages": [
-                {"role": "system", "content": system_instruction},
-                {"role": "user", "content": prompt_text}
-            ],
-            "temperature": 0.7
-        }
-        try:
-            req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
-            with urllib.request.urlopen(req, timeout=12) as response:
-                res_data = json.loads(response.read().decode("utf-8"))
-                choices = res_data.get("choices", [])
-                if choices:
-                    return choices[0].get("message", {}).get("content", "")
-        except Exception as e:
-            return f"⚠️ Groq Error: {str(e)}"
+        models_groq = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+        last_groq_err = None
+        for g_model in models_groq:
+            payload = {
+                "model": g_model,
+                "messages": [
+                    {"role": "system", "content": system_instruction},
+                    {"role": "user", "content": prompt_text}
+                ],
+                "temperature": 0.7
+            }
+            try:
+                req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+                with urllib.request.urlopen(req, timeout=12) as response:
+                    res_data = json.loads(response.read().decode("utf-8"))
+                    choices = res_data.get("choices", [])
+                    if choices:
+                        return choices[0].get("message", {}).get("content", "")
+            except urllib.error.HTTPError as e:
+                try:
+                    err_b = json.loads(e.read().decode("utf-8"))
+                    last_groq_err = err_b.get("error", {}).get("message", str(e))
+                except Exception:
+                    last_groq_err = f"HTTP {e.code}"
+                continue
+            except Exception as e:
+                last_groq_err = str(e)
+                continue
+        return f"⚠️ Groq Error: {last_groq_err}"
 
     # ⚡ 2. GOOGLE GEMINI ENGINE
     models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
