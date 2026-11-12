@@ -7,6 +7,7 @@ import time
 import os
 import random
 import base64
+import re
 
 # Page configuration
 st.set_page_config(
@@ -137,7 +138,7 @@ def call_gemini_api(api_key, prompt_text, system_instruction=""):
             "Authorization": f"Bearer {api_key_clean}",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
-        # Dynamically fetch active models directly from Groq
+        # Dynamically fetch active models directly from Groq (Prioritizing high-accuracy 70B models)
         models_groq = []
         try:
             m_req = urllib.request.Request("https://api.groq.com/openai/v1/models", headers=headers)
@@ -147,13 +148,17 @@ def call_gemini_api(api_key, prompt_text, system_instruction=""):
                     m["id"] for m in m_data.get("data", [])
                     if "whisper" not in m["id"].lower() and "guard" not in m["id"].lower()
                 ]
-                # Prioritize versatile and 70b/8b models
-                models_groq.sort(key=lambda x: (not ("versatile" in x or "70b" in x), not ("instant" in x or "8b" in x)))
+                # Sabse pehle 70B aur 3.3 versatile models (jinme spelling mistakes 0% hoti hain)
+                models_groq.sort(key=lambda x: (
+                    not ("70b" in x.lower() or "3.3" in x.lower()),
+                    not ("versatile" in x.lower()),
+                    not ("llama" in x.lower())
+                ))
         except Exception:
             pass
 
         if not models_groq:
-            models_groq = ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "gemma2-9b-it"]
+            models_groq = ["llama-3.3-70b-versatile", "llama-3.1-70b-versatile", "mixtral-8x7b-32768"]
 
         last_groq_err = None
         for g_model in models_groq:
@@ -344,15 +349,18 @@ if prompt := st.chat_input("Gunnu se kuch bhi poochhein..."):
         system_prompt = (
             "You are 'Gunnu' (गुन्नू), a super smart, helpful, polite, and friendly FEMALE personal AI assistant (like ChatGPT, but your name is Gunnu and you are female). "
             "IMPORTANT RULES: "
-            "1. CREATOR IDENTITY: If anyone asks who created you, who made you, who developed you, or who your creator is (e.g. 'tumhe kisne banaya', 'who created you', 'kisne banaya hai', 'who made this', etc.), "
+            "1. SPELLING & LANGUAGE ACCURACY (VERY STRICT - NO TYPOS): "
+            "Maintain 100% accurate spelling, pristine grammar, and high-quality vocabulary in Hindi, Hinglish, and English. "
+            "When replying in Hinglish (Roman Hindi), write natural, standard, and fluent words (e.g., 'swaad', 'namak', 'tamatar', 'pyaz', 'swadisht', 'dhanyawad', 'samajh', 'tarika'). "
+            "NEVER produce weird phonetic typos, broken characters, or gibberish spellings. Keep sentences clean and structured. "
+            "2. CREATOR IDENTITY: If anyone asks who created you, who made you, who developed you, or who your creator is (e.g. 'tumhe kisne banaya', 'who created you', 'kisne banaya hai', 'who made this', etc.), "
             "you must ALWAYS happily and proudly reply: 'Mujhe Gunnu ke chacha Mohit Pareek ne banaya hai! 🌸😊'. "
-            "2. GENDER & GRAMMAR: You are strictly a female. In Hindi and Hinglish, ALWAYS use feminine verb forms and feminine grammar for yourself. "
+            "3. GENDER & GRAMMAR: You are strictly a female. In Hindi and Hinglish, ALWAYS use feminine verb forms and feminine grammar for yourself. "
             "For example: say 'main kar sakti hoon', 'bata sakti hoon', 'kaisi hoon', 'main aapki madad karungi', 'mujhe pata hai', 'main samajhti hoon'. "
             "NEVER use masculine words for yourself like 'karta hoon', 'bata sakta hoon', 'samajhta hoon'. "
-            "3. 18+ SAFETY & POLICY: Strictly refuse non-consensual sexual content, explicit illegal obscenity, or harmful pornography. "
+            "4. 18+ SAFETY & POLICY: Strictly refuse non-consensual sexual content, explicit illegal obscenity, or harmful pornography. "
             "If the user has verified they are 18+ for a biological, medical, or relationship question, explain respectfully, scientifically, and educationally without being crude or vulgar. "
-            "4. Keep answers concise, fast, and friendly unless detailed technical code/explanation/recipe is requested. "
-            "5. If live web search results are provided below, make sure to use them to give 100% accurate, updated real-time facts. "
+            "5. Keep answers well-formatted with clear headings and bullet points. "
             "6. When asked who you are, introduce yourself as Gunnu, a smart female AI companion.\n"
         )
 
@@ -361,11 +369,13 @@ if prompt := st.chat_input("Gunnu se kuch bhi poochhein..."):
         with st.spinner("Gunnu soch rahi hai... 🌸"):
             raw_response = call_gemini_api(gemini_api_key, target_prompt, full_prompt)
             
-            # Smooth typewriter streaming for the response
+            # Smooth typewriter streaming without breaking spaces, newlines or words
             def stream_response():
-                for word in raw_response.split(" "):
-                    yield word + " "
-                    time.sleep(0.01)
+                tokens = re.findall(r'\S+|\s+', raw_response)
+                for token in tokens:
+                    yield token
+                    if token.strip():
+                        time.sleep(0.005)
                     
             full_response = message_placeholder.write_stream(stream_response())
 
