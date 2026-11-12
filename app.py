@@ -139,16 +139,51 @@ def search_web(query, max_results=3):
         return None
     return None
 
-# Direct Robust Google API Caller (Supports AQ. Keys with x-goog-api-key header)
+# Direct Robust Google API Caller (Supports AQ. Keys via Bearer and Native endpoints)
 def call_gemini_api(api_key, prompt_text, system_instruction=""):
-    models = ["gemini-2.5-flash", "gemini-3.8-flash", "gemini-2.0-flash"]
+    api_key_clean = api_key.strip()
+    models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
     last_err = None
-    
+
+    # Strategy 1: Google's Official OpenAI Endpoint (Specially accepts Authorization: Bearer AQ... tokens)
     for model in models:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+        url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
         headers = {
             "Content-Type": "application/json",
-            "x-goog-api-key": api_key.strip()
+            "Authorization": f"Bearer {api_key_clean}"
+        }
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": prompt_text}
+            ],
+            "temperature": 0.7
+        }
+        try:
+            req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+            with urllib.request.urlopen(req, timeout=12) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+                choices = res_data.get("choices", [])
+                if choices:
+                    return choices[0].get("message", {}).get("content", "")
+        except urllib.error.HTTPError as e:
+            try:
+                err_data = json.loads(e.read().decode("utf-8"))
+                last_err = err_data.get("error", {}).get("message", str(e))
+            except Exception:
+                last_err = f"HTTP {e.code}"
+            continue
+        except Exception as e:
+            last_err = str(e)
+            continue
+
+    # Strategy 2: Google Native Endpoint with Query Param + x-goog-api-key
+    for model in models:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key_clean}"
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": api_key_clean
         }
         payload = {
             "contents": [
@@ -156,9 +191,7 @@ def call_gemini_api(api_key, prompt_text, system_instruction=""):
                     "parts": [{"text": f"{system_instruction}\n\nUser Question: {prompt_text}"}]
                 }
             ],
-            "generationConfig": {
-                "temperature": 0.7
-            }
+            "generationConfig": {"temperature": 0.7}
         }
         try:
             req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
@@ -169,29 +202,9 @@ def call_gemini_api(api_key, prompt_text, system_instruction=""):
                     parts = candidates[0].get("content", {}).get("parts", [])
                     if parts:
                         return parts[0].get("text", "")
-        except urllib.error.HTTPError as e:
-            try:
-                err_data = json.loads(e.read().decode("utf-8"))
-                last_err = err_data.get("error", {}).get("message", str(e))
-            except Exception:
-                last_err = f"HTTP Error {e.code}"
-            continue
         except Exception as e:
             last_err = str(e)
             continue
-
-    # Secondary Fallback via official SDK
-    try:
-        from google import genai
-        client = genai.Client(api_key=api_key.strip(), http_options={"api_version": "v1beta"})
-        res = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=f"{system_instruction}\n\nUser Question: {prompt_text}"
-        )
-        if res and res.text:
-            return res.text
-    except Exception as e2:
-        last_err = f"{last_err} (Fallback: {str(e2)})"
 
     return f"⚠️ Error: {last_err}"
 
