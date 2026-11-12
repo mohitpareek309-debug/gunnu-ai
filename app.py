@@ -59,18 +59,6 @@ st.markdown("""
         font-size: 0.95rem;
         margin-bottom: 0.5rem;
     }
-    /* Suggestion pill buttons */
-    .stButton > button {
-        border-radius: 20px;
-        font-size: 0.85rem;
-        padding: 0.3rem 0.8rem;
-        border: 1px solid rgba(255, 107, 139, 0.3);
-        transition: all 0.2s ease;
-    }
-    .stButton > button:hover {
-        border-color: #ff6b8b;
-        background-color: rgba(255, 107, 139, 0.1);
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -167,10 +155,12 @@ def get_instant_response(query):
         
     # 2. Greetings
     greetings = [
-        "hi", "hii", "hiii", "hello", "hey", "heyy", "namaste", "pranam", "sup",
-        "ram ram", "radhe radhe", "jai shree ram", "salam", "adaab", "hii gunnu", "hello gunnu"
+        "hi", "hii", "hiii", "hello", "helo", "hlo", "hlw", "hey", "heyy", "hy", "hyy",
+        "yo", "hola", "namaste", "namaskar", "pranam", "sup",
+        "ram ram", "radhe radhe", "jai shree ram", "salam", "adaab",
+        "hii gunnu", "hello gunnu", "hlo gunnu", "hey gunnu"
     ]
-    if q_clean in greetings or (len(q_clean.split()) <= 2 and any(q_clean.startswith(g) for g in ["hi", "hello", "hey", "namaste"])):
+    if q_clean in greetings or (len(q_clean.split()) <= 2 and any(q_clean.startswith(g) for g in ["hi", "hello", "helo", "hlo", "hey", "namaste"])):
         replies = [
             "Hii! 🌸 Kaise ho aap? Boliye, main aapki kya madad kar sakti hoon?",
             "Hello! 🌸 Main Gunnu hoon. Aaj main aapki kya help kar sakti hoon?",
@@ -243,12 +233,11 @@ def search_web(query, max_results=3):
 # ==============================================================================
 # 🤖 6. MULTI-MODEL RESILIENT AI CALLER (With Multi-turn Chat Memory)
 # ==============================================================================
-# Top verified free high-accuracy models on Groq
+# Top verified free high-accuracy models on Groq (100% Live & Active)
 GROQ_MODELS = [
-    "llama-3.3-70b-versatile",   # Primary: Smartest, zero spelling mistakes, perfect Hindi/Hinglish
-    "llama-3.1-70b-versatile",   # Secondary 70B backup
-    "mixtral-8x7b-32768",        # Fast multi-lingual backup
-    "gemma2-9b-it"               # Google Gemma 2 backup
+    "qwen/qwen3.8-27b",        # Primary: Super fast, 100% active, perfect Hindi & Hinglish
+    "openai/gpt-oss-120b",     # Flagship 120B model on Groq
+    "openai/gpt-oss-20b"       # Lightweight 20B model
 ]
 
 def call_ai_engine(api_key, prompt_text, system_instruction, history_messages=None):
@@ -290,7 +279,10 @@ def call_ai_engine(api_key, prompt_text, system_instruction, history_messages=No
                     res_data = json.loads(response.read().decode("utf-8"))
                     choices = res_data.get("choices", [])
                     if choices:
-                        content = choices[0].get("message", {}).get("content", "").strip()
+                        msg = choices[0].get("message", {})
+                        content = msg.get("content", "").strip()
+                        if not content and msg.get("reasoning"):
+                            content = msg.get("reasoning", "").strip()
                         if content:
                             return content
             except urllib.error.HTTPError as e:
@@ -304,6 +296,26 @@ def call_ai_engine(api_key, prompt_text, system_instruction, history_messages=No
                 last_error = str(e)
                 continue
                 
+        # 🔄 Dynamic discovery fallback if preset models are ever busy or updated
+        try:
+            m_req = urllib.request.Request("https://api.groq.com/openai/v1/models", headers=headers)
+            with urllib.request.urlopen(m_req, timeout=5) as m_resp:
+                m_data = json.loads(m_resp.read().decode("utf-8"))
+                for m_item in m_data.get("data", []):
+                    mid = m_item.get("id", "")
+                    if "whisper" not in mid.lower() and "guard" not in mid.lower() and mid not in GROQ_MODELS:
+                        payload = {"model": mid, "messages": api_messages, "temperature": 0.6, "max_tokens": 1500}
+                        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+                        with urllib.request.urlopen(req, timeout=10) as response:
+                            res_data = json.loads(response.read().decode("utf-8"))
+                            choices = res_data.get("choices", [])
+                            if choices:
+                                c = choices[0].get("message", {}).get("content", "").strip()
+                                if c:
+                                    return c
+        except Exception:
+            pass
+
         return f"⚠️ Gunnu connection me thodi rukavat aayi: {last_error}. Kripya dobara poochhein!"
 
     # ⚡ 2. GOOGLE GEMINI BACKUP ENGINE
@@ -358,25 +370,6 @@ if "is_18_verified" not in st.session_state:
 
 if "pending_adult_query" not in st.session_state:
     st.session_state.pending_adult_query = None
-
-# Quick suggestion chips when only the initial welcome message is present
-if len(st.session_state.messages) <= 1:
-    st.markdown("<p style='font-size:0.85rem; color:#777; margin-bottom:0.3rem;'>💡 <b>Kuch aasan sawaal jinse aap shuru kar sakte hain:</b></p>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    preset_query = None
-    with c1:
-        if st.button("🍳 Rajma Chawal Recipe", use_container_width=True):
-            preset_query = "Rajma chawal ki aasan aur swadisht recipe batao"
-    with c2:
-        if st.button("💻 Python Kaise Seekhein?", use_container_width=True):
-            preset_query = "Python programming shuru se seekhne ka sabse aasan roadmap kya hai?"
-    with c3:
-        if st.button("🌸 Tumhe Kisne Banaya?", use_container_width=True):
-            preset_query = "Tumhe kisne banaya hai?"
-            
-    if preset_query:
-        st.session_state.messages.append({"role": "user", "content": preset_query})
-        st.rerun()
 
 # Display all chat messages
 for msg in st.session_state.messages:
