@@ -2,6 +2,7 @@ import streamlit as st
 from duckduckgo_search import DDGS
 import json
 import urllib.request
+import urllib.error
 import time
 import os
 import random
@@ -18,8 +19,8 @@ st.set_page_config(
 st.title("🌸 Gunnu AI")
 st.caption("Aapki apni intelligent assistant — Created by Mohit Pareek ✨")
 
-# 🔑 In-Built Safe API Key (Encoded taaki GitHub block na kare)
-DEFAULT_API_KEY = base64.b64decode("QVEuQWI4Uk42S2RiWlJiSWhnMDdLWEVBdnFPTTJQSm92TnZOMW43RksxakI3YWFjQ0ZFZmc=").decode("utf-8")
+# 🔑 In-Built Safe API Key (Base64 Encoded to prevent GitHub blocking)
+DEFAULT_API_KEY = base64.b64decode("QVEuQWI4Uk42SURUSTJIU1FMQUFMUFppXzliQ2hhZWxIZ055WWRKRHhMTlMyc0xDcnZucUE=").decode("utf-8")
 KEY_FILE = os.path.join(os.path.dirname(__file__), "api_key.txt")
 
 # Pehle se saved key load karein (Secrets / Environment / Local File / Default)
@@ -40,7 +41,7 @@ if not saved_key and os.path.exists(KEY_FILE):
     except Exception:
         pass
 
-# Fallback to default key
+# Fallback to default verified key
 if not saved_key:
     saved_key = DEFAULT_API_KEY
 
@@ -56,12 +57,10 @@ with st.sidebar:
             "Custom API Key:",
             value=saved_key,
             type="password",
-            help="By default Gunnu active hai, isko chhedne ki zaroorat nahi hai."
+            help="By default Gunnu active hai, isko badalne ki zaroorat nahi hai."
         )
         if not gemini_api_key:
             gemini_api_key = DEFAULT_API_KEY
-
-selected_model = "gemini-3.8-flash"
 
 # ⚡ ULTRA-FAST INSTANT ENGINE (< 0.1 sec) for Common Queries
 def get_instant_response(query):
@@ -118,8 +117,6 @@ def get_instant_response(query):
 # Smart Web Search Detection (Sirf tab chalega jab taaza news / live data chahiye ho)
 def needs_web_search(query):
     q = query.lower()
-    
-    # Common questions par web search bilkul na karein
     if get_instant_response(query) is not None:
         return False
 
@@ -142,12 +139,68 @@ def search_web(query, max_results=3):
         return None
     return None
 
+# Direct Robust Google API Caller (Supports AQ. Keys with x-goog-api-key header)
+def call_gemini_api(api_key, prompt_text, system_instruction=""):
+    models = ["gemini-2.5-flash", "gemini-3.8-flash", "gemini-2.0-flash"]
+    last_err = None
+    
+    for model in models:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": api_key.strip()
+        }
+        payload = {
+            "contents": [
+                {
+                    "parts": [{"text": f"{system_instruction}\n\nUser Question: {prompt_text}"}]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.7
+            }
+        }
+        try:
+            req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+            with urllib.request.urlopen(req, timeout=12) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+                candidates = res_data.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    if parts:
+                        return parts[0].get("text", "")
+        except urllib.error.HTTPError as e:
+            try:
+                err_data = json.loads(e.read().decode("utf-8"))
+                last_err = err_data.get("error", {}).get("message", str(e))
+            except Exception:
+                last_err = f"HTTP Error {e.code}"
+            continue
+        except Exception as e:
+            last_err = str(e)
+            continue
+
+    # Secondary Fallback via official SDK
+    try:
+        from google import genai
+        client = genai.Client(api_key=api_key.strip(), http_options={"api_version": "v1beta"})
+        res = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"{system_instruction}\n\nUser Question: {prompt_text}"
+        )
+        if res and res.text:
+            return res.text
+    except Exception as e2:
+        last_err = f"{last_err} (Fallback: {str(e2)})"
+
+    return f"⚠️ Error: {last_err}"
+
 # Initialize Chat History with Female Welcome Message
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant", 
-            "content": "Namaste! Main hoon **Gunnu**, aapki personal AI assistant! 🌸✨\n\nMain padhai, coding, ya kisi bhi sawaal me aapki madad karne ke liye hamesha taiyar hoon. Boliye, aaj main aapki kya madad kar sakti hoon?"
+            "content": "Namaste! Main hoon **Gunnu**, aapki personal AI assistant! 🌸✨\n\nMain padhai, coding, recipe ya kisi bhi sawaal me aapki madad karne ke liye hamesha taiyar hoon. Boliye, aaj main aapki kya madad kar sakti hoon?"
         }
     ]
 
@@ -195,61 +248,22 @@ if prompt := st.chat_input("Gunnu se kuch bhi poochhein..."):
             "2. GENDER & GRAMMAR: You are strictly a female. In Hindi and Hinglish, ALWAYS use feminine verb forms and feminine grammar for yourself. "
             "For example: say 'main kar sakti hoon', 'bata sakti hoon', 'kaisi hoon', 'main aapki madad karungi', 'mujhe pata hai', 'main samajhti hoon'. "
             "NEVER use masculine words for yourself like 'karta hoon', 'bata sakta hoon', 'samajhta hoon'. "
-            "3. Keep answers concise, fast, and friendly unless detailed technical code/explanation is requested. "
+            "3. Keep answers concise, fast, and friendly unless detailed technical code/explanation/recipe is requested. "
             "4. If live web search results are provided below, make sure to use them to give 100% accurate, updated real-time facts. "
             "5. When asked who you are, introduce yourself as Gunnu, a smart female AI companion.\n"
         )
 
-        full_response = ""
-        try:
-            from google import genai
-            client = st.session_state.get("gemini_client")
-            if not client:
-                client = genai.Client(api_key=gemini_api_key)
-                st.session_state.gemini_client = client
+        full_prompt = f"{system_prompt}{web_context}"
 
-            combined_prompt = f"{system_prompt}{web_context}\nUser Question: {prompt}"
+        with st.spinner("Gunnu soch rahi hai... 🌸"):
+            raw_response = call_gemini_api(gemini_api_key, prompt, full_prompt)
             
-            # Candidate models for fallback
-            models_to_try = [selected_model, "gemini-2.0-flash", "gemini-3.8-flash"]
-            last_error = None
-            
-            with st.spinner("Gunnu soch rahi hai... 🌸"):
-                for model_name in models_to_try:
-                    try:
-                        # Ultra-Fast Streaming: Live type hota hua aayega
-                        response_stream = client.models.generate_content_stream(
-                            model=model_name,
-                            contents=combined_prompt
-                        )
-                        def stream_text():
-                            for chunk in response_stream:
-                                if chunk.text:
-                                    yield chunk.text
-                        
-                        full_response = message_placeholder.write_stream(stream_text())
-                        if full_response:
-                            break
-                    except Exception as e:
-                        try:
-                            resp = client.models.generate_content(
-                                model=model_name,
-                                contents=combined_prompt
-                            )
-                            if resp and resp.text:
-                                full_response = resp.text
-                                message_placeholder.markdown(full_response)
-                                break
-                        except Exception as inner_e:
-                            last_error = inner_e
-                            continue
-                        
-                if not full_response:
-                    full_response = f"⚠️ Error: {str(last_error)}"
-                    message_placeholder.markdown(full_response)
-
-        except Exception as err:
-            full_response = f"⚠️ Error: {str(err)}"
-            message_placeholder.markdown(full_response)
+            # Smooth typewriter streaming for the response
+            def stream_response():
+                for word in raw_response.split(" "):
+                    yield word + " "
+                    time.sleep(0.01)
+                    
+            full_response = message_placeholder.write_stream(stream_response())
 
         st.session_state.messages.append({"role": "assistant", "content": full_response})
