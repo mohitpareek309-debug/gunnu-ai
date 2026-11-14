@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from duckduckgo_search import DDGS
 from PIL import Image
 import sqlite3
@@ -22,13 +23,89 @@ st.set_page_config(
     page_title="Gunnu AI - Aapki Personal Assistant",
     page_icon="🌸",
     layout="centered",
-    initial_sidebar_state="collapsed"  # Mobile friendly: doesn't block main page
+    initial_sidebar_state="collapsed"
 )
+
+# ==============================================================================
+# 🚫 JAVASCRIPT: NUKE BOTTOM-RIGHT STREAMLIT CLOUD BADGES (Status & Red Crown)
+# ==============================================================================
+components.html("""
+<script>
+(function() {
+    function purgeBadges() {
+        const targetDocs = [];
+        try { targetDocs.push(document); } catch(e) {}
+        try { if (window.parent && window.parent.document) targetDocs.push(window.parent.document); } catch(e) {}
+        try { if (window.top && window.top.document) targetDocs.push(window.top.document); } catch(e) {}
+
+        const selectors = [
+            '#manage-app-button',
+            '[data-testid="manage-app-button"]',
+            '.viewerBadge_container__1QSob',
+            '[class*="viewerBadge"]',
+            '[data-testid="stStatusWidget"]',
+            '[class*="StatusWidget"]',
+            '.stStatusWidget',
+            '.stAppDeployButton',
+            '.stDeployButton',
+            'a[href*="streamlit.io"]',
+            'button[kind="manage-app"]',
+            'iframe[title="Streamlit App Status"]',
+            'div[class*="manage-app"]'
+        ];
+
+        targetDocs.forEach(doc => {
+            if (!doc) return;
+            try {
+                // 1. Inject parent CSS if not present
+                if (!doc.getElementById('nuke-streamlit-badges-css')) {
+                    const st = doc.createElement('style');
+                    st.id = 'nuke-streamlit-badges-css';
+                    st.innerHTML = `
+                        #manage-app-button, [data-testid="manage-app-button"],
+                        .viewerBadge_container__1QSob, [class*="viewerBadge"],
+                        [data-testid="stStatusWidget"], [class*="StatusWidget"],
+                        .stStatusWidget, .stAppDeployButton, .stDeployButton,
+                        a[href*="streamlit.io"], button[kind="manage-app"],
+                        iframe[title="Streamlit App Status"], div[class*="manage-app"] {
+                            display: none !important;
+                            visibility: hidden !important;
+                            opacity: 0 !important;
+                            pointer-events: none !important;
+                            position: fixed !important;
+                            left: -9999px !important;
+                            bottom: -9999px !important;
+                            width: 0px !important;
+                            height: 0px !important;
+                            overflow: hidden !important;
+                        }
+                    `;
+                    doc.head.appendChild(st);
+                }
+
+                // 2. Direct DOM removal
+                selectors.forEach(sel => {
+                    doc.querySelectorAll(sel).forEach(el => {
+                        el.style.setProperty('display', 'none', 'important');
+                        el.style.setProperty('visibility', 'hidden', 'important');
+                        el.style.setProperty('opacity', '0', 'important');
+                        try { el.remove(); } catch(err) {}
+                    });
+                });
+            } catch(e) {}
+        });
+    }
+
+    purgeBadges();
+    setInterval(purgeBadges, 300);
+})();
+</script>
+""", height=0, width=0)
 
 # Deep Studio Theme with Ambient Glow, Glassmorphism & Complete White-Labeling
 st.markdown("""
 <style>
-    /* 1. Hide Streamlit Chrome & Bottom Floating Badges (Status Icon & Crown / Manage App Button) */
+    /* 1. Hide Streamlit Chrome & Headers */
     #MainMenu {visibility: hidden; display: none !important;}
     header {visibility: hidden; display: none !important;}
     footer {visibility: hidden; display: none !important;}
@@ -45,13 +122,10 @@ st.markdown("""
     div[class*="viewerBadge"] {visibility: hidden; display: none !important;}
     div[class*="StatusWidget"] {visibility: hidden; display: none !important;}
     div[class*="manage-app"] {visibility: hidden; display: none !important;}
-    div[class*="stDeploy"] {visibility: hidden; display: none !important;}
     iframe[title="Streamlit App Status"] {visibility: hidden; display: none !important;}
     a[href*="streamlit.io"] {visibility: hidden; display: none !important;}
-    div[data-testid="stBottom"] > div:has(#manage-app-button) {visibility: hidden; display: none !important;}
-    div[data-testid="stBottom"] > div:has([data-testid="manage-app-button"]) {visibility: hidden; display: none !important;}
 
-    /* Failsafe to remove any floating bottom-right badges completely */
+    /* Failsafe to position any floating button far offscreen */
     #manage-app-button,
     [data-testid="manage-app-button"],
     .viewerBadge_container__1QSob,
@@ -81,38 +155,76 @@ st.markdown("""
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
     }
 
-    /* 3. Sidebar Glassmorphism */
-    [data-testid="stSidebar"] {
-        background: rgba(13, 17, 23, 0.94) !important;
-        backdrop-filter: blur(18px) !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
-    }
-
-    /* 4. Main Chat Container */
+    /* 3. Main Chat Container */
     .block-container {
         padding-top: 0.6rem !important;
         padding-bottom: 3.2rem !important;
         max-width: 760px !important;
     }
 
-    /* 5. Header Branding */
-    .gunnu-header {
-        text-align: center;
-        padding: 0.1rem 0 0.5rem 0;
+    /* 4. Top Header Bar Layout */
+    .gunnu-header-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 0;
     }
-    .gunnu-title {
+    .gunnu-logo-icon {
         font-size: 2.1rem;
+        line-height: 1;
+    }
+    .gunnu-title-text {
+        font-size: 1.55rem;
         font-weight: 800;
         letter-spacing: -0.5px;
-        margin-bottom: 0.1rem;
+        line-height: 1.1;
         background: linear-gradient(135deg, #ff6b8b 0%, #ff8e53 50%, #ffc371 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
-    .gunnu-subtitle {
+    .gunnu-sub-text {
         color: #8b949e;
-        font-size: 0.88rem;
-        margin-bottom: 0.3rem;
+        font-size: 0.78rem;
+        line-height: 1.2;
+        margin-top: 2px;
+    }
+
+    /* 5. 3-Dot Menu Popover Button Styling */
+    div[data-testid="stPopover"] {
+        display: flex;
+        justify-content: flex-end;
+    }
+    div[data-testid="stPopover"] > button {
+        border-radius: 50% !important;
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 1.5rem !important;
+        font-weight: 900 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(22, 27, 34, 0.8) !important;
+        border: 1px solid rgba(255, 107, 139, 0.45) !important;
+        color: #ff6b8b !important;
+        padding: 0 !important;
+        margin-left: auto !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35) !important;
+        transition: all 0.2s ease !important;
+    }
+    div[data-testid="stPopover"] > button:hover {
+        background: rgba(255, 107, 139, 0.25) !important;
+        border-color: #ff6b8b !important;
+        color: #ffffff !important;
+        transform: scale(1.08) !important;
+    }
+    div[data-testid="stPopoverBody"] {
+        background: rgba(13, 17, 23, 0.98) !important;
+        backdrop-filter: blur(24px) !important;
+        border: 1px solid rgba(255, 107, 139, 0.35) !important;
+        border-radius: 16px !important;
+        padding: 16px !important;
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65) !important;
+        max-height: 82vh !important;
     }
 
     /* 6. Message Bubble Styling */
@@ -194,14 +306,6 @@ st.markdown("""
         border-radius: 10px !important;
     }
 </style>
-""", unsafe_allow_html=True)
-
-# Header Display
-st.markdown("""
-<div class="gunnu-header">
-    <div class="gunnu-title">🌸 Gunnu AI</div>
-    <div class="gunnu-subtitle">Aapki apni intelligent assistant — Created by <b>Mohit Pareek</b> ✨</div>
-</div>
 """, unsafe_allow_html=True)
 
 # ==============================================================================
@@ -317,7 +421,7 @@ def db_record_image_gen(user_id, prompt, image_url):
     conn.close()
 
 # ==============================================================================
-# 🔒 3. SECURE API KEY & HELPER FUNCTIONS DEFINED UPFRONT
+# 🔒 3. SECURE API KEY & HELPER FUNCTIONS
 # ==============================================================================
 ACTIVE_API_KEY = ""
 try:
@@ -642,7 +746,7 @@ if "current_session_id" not in st.session_state:
         db_create_session(user_id, new_sid, "Nayi Chat")
         st.session_state.current_session_id = new_sid
 
-# Short, sweet hello message (Compact greeting as requested by user)
+# Short, sweet hello message
 SHORT_HELLO_MSG = "Namaste! Main Gunnu hoon 🌸 Aaj main aapki kya madad kar sakti hoon?"
 
 active_msgs = db_get_session_messages(st.session_state.current_session_id)
@@ -675,8 +779,7 @@ if "pending_adult_query" not in st.session_state:
     st.session_state.pending_adult_query = None
 
 # ==============================================================================
-# 🗂️ 5. MAIN SCREEN TOP CONTROLS: PAST CHATS DROPDOWN & CAMERA
-# (Visible directly on mobile & desktop without needing sidebar)
+# 🗂️ 5. TOP HEADER WITH 3-DOT MENU (Home Pe Sirf Recent Chats + Top 3-Dot Options)
 # ==============================================================================
 user_sessions = db_get_user_sessions(st.session_state.user_id)
 if not user_sessions:
@@ -691,150 +794,164 @@ for sid, s_title, s_time in user_sessions:
 keys_list = list(session_map.keys())
 default_index = keys_list.index(st.session_state.current_session_id) if st.session_state.current_session_id in keys_list else 0
 
-# Compact Top Bar: Dropdown + New Chat + Delete Chat
-c_drop, c_new, c_del = st.columns([5, 2, 2])
+# Clean Top Header: Left = Branding, Right = 3-Dot (⋮) Menu
+col_brand, col_menu = st.columns([8, 2], vertical_alignment="center")
 
-with c_drop:
-    selected_session = st.selectbox(
-        "🗂️ Purani Baatein (Past Chats)",
-        options=keys_list,
-        format_func=lambda x: session_map.get(x, x),
-        index=default_index,
-        label_visibility="collapsed",
-        key="main_session_dropdown_select"
-    )
-    if selected_session != st.session_state.current_session_id:
-        st.session_state.current_session_id = selected_session
-        st.session_state.pending_adult_query = None
-        st.rerun()
+with col_brand:
+    st.markdown("""
+    <div class="gunnu-header-brand">
+        <span class="gunnu-logo-icon">🌸</span>
+        <div>
+            <div class="gunnu-title-text">Gunnu AI</div>
+            <div class="gunnu-sub-text">Aapki apni intelligent assistant — Created by <b>Mohit Pareek</b> ✨</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-with c_new:
-    if st.button("➕ Nayi", use_container_width=True, help="Nayi Chat Shuru Karein", key="btn_main_new_chat"):
-        new_sid = str(uuid.uuid4())
-        db_create_session(st.session_state.user_id, new_sid, "Nayi Chat")
-        db_save_message(new_sid, "assistant", SHORT_HELLO_MSG)
-        st.session_state.current_session_id = new_sid
-        st.session_state.pending_adult_query = None
-        st.rerun()
-
-with c_del:
-    if st.button("🗑️ Hatao", use_container_width=True, help="Is chat ko delete karein", key="btn_main_del_chat"):
-        db_delete_session(st.session_state.current_session_id)
-        rem = db_get_user_sessions(st.session_state.user_id)
-        if rem:
-            st.session_state.current_session_id = rem[0][0]
-        else:
+with col_menu:
+    with st.popover("⋮", help="Options & Menu", use_container_width=True):
+        st.markdown("### 🌸 Gunnu AI Options")
+        
+        # 1. ➕ New Chat Button
+        if st.button("➕ Nayi Chat Shuru Karein", use_container_width=True, type="primary", key="pop_new_chat"):
             new_sid = str(uuid.uuid4())
             db_create_session(st.session_state.user_id, new_sid, "Nayi Chat")
             db_save_message(new_sid, "assistant", SHORT_HELLO_MSG)
             st.session_state.current_session_id = new_sid
-        st.session_state.pending_adult_query = None
-        st.rerun()
+            st.session_state.pending_adult_query = None
+            st.rerun()
 
-# Camera & Photo Search Expander on Main Screen
-with st.expander("📸 Camera / Photo Se Jankari Payein", expanded=False):
-    cam_source = st.radio("Photo Source:", ["📸 Live Camera", "📁 Gallery Upload"], horizontal=True, key="main_cam_radio")
-    
-    main_photo_file = None
-    if cam_source == "📸 Live Camera":
-        main_photo_file = st.camera_input("Camera se photo kheenchein 📸", key="main_camera_input")
-    else:
-        main_photo_file = st.file_uploader("Gallery se photo upload karein 📁", type=["jpg", "jpeg", "png", "webp"], key="main_file_uploader")
+        st.divider()
 
-    if main_photo_file is not None:
-        st.image(main_photo_file, caption="Selected Photo", use_container_width=True)
-        main_photo_query = st.text_input("Photo ke baare me sawaal (Optional):", placeholder="Yeh kya cheez hai? / Iska solution batao...", key="main_photo_q")
-        if st.button("🔍 Photo Search Karein", use_container_width=True, type="primary", key="main_btn_search_photo"):
-            b64_img = process_uploaded_image(main_photo_file)
-            if b64_img:
-                q_text = main_photo_query.strip() if main_photo_query.strip() else "Is photo ko dhyan se dekho aur detail me batao ki isme kya hai."
-                db_save_message(st.session_state.current_session_id, "user", f"📷 [Photo Attached]: {q_text}", image_data=b64_img)
-                st.session_state.messages.append({"role": "user", "content": f"📷 [Photo Attached]: {q_text}", "image_data": b64_img})
-                
-                sys_v = "You are 'Gunnu', an intelligent female AI assistant with vision created by Mohit Pareek. Analyze the photo and answer politely in Hindi/Hinglish."
-                with st.spinner("Gunnu photo analyse kar rahi hai... 🔍🌸"):
-                    v_ans = call_ai_engine(ACTIVE_API_KEY, q_text, sys_v, history_messages=st.session_state.messages, image_b64=b64_img)
-                db_save_message(st.session_state.current_session_id, "assistant", v_ans)
-                st.session_state.messages.append({"role": "assistant", "content": v_ans, "image_data": None})
-                st.rerun()
-
-# ==============================================================================
-# ⚙️ 6. SIDEBAR: PHOTO QUOTA, MODE SELECTOR & EXPORT
-# ==============================================================================
-with st.sidebar:
-    st.header("🌸 Gunnu AI")
-    
-    # 1. 🎨 STRICT 5 PHOTOS / 24HR QUOTA SYSTEM
-    st.markdown("### 🎨 Daily AI Photo Limit")
-    used_images = db_get_image_quota_count(st.session_state.user_id)
-    remaining_images = max(0, 5 - used_images)
-    
-    st.progress(min(1.0, used_images / 5.0))
-    col_q1, col_q2 = st.columns(2)
-    with col_q1:
-        st.markdown(f"**Used:** `{used_images} / 5`")
-    with col_q2:
-        st.markdown(f"**Bachi:** `{remaining_images} free`")
-
-    if used_images >= 5:
-        st.error(
-            "⚠️ **24 Ghante Ki Limit Puri (5/5)!**\n\n"
-            "👉 Extra photo ke liye **₹5/photo** payment karein:\n"
-            "📱 **7357661766** (GPay/PhonePe/Paytm/UPI)"
+        # 2. 🗂️ Past Chats Dropdown
+        st.markdown("**🗂️ Purani Baatein (Past Chats):**")
+        selected_session = st.selectbox(
+            "Purani chat chunein:",
+            options=keys_list,
+            format_func=lambda x: session_map.get(x, x),
+            index=default_index,
+            label_visibility="collapsed",
+            key="pop_session_dropdown_select"
         )
-    else:
-        st.caption("✨ Har user ko 24 ghante me 5 free photos milti hain.")
+        if selected_session != st.session_state.current_session_id:
+            st.session_state.current_session_id = selected_session
+            st.session_state.pending_adult_query = None
+            st.rerun()
 
-    st.divider()
+        # 3. 🗑️ Delete Chat Button
+        if st.button("🗑️ Yeh Chat Delete Karein", use_container_width=True, help="Is chat ko delete karein", key="pop_del_chat"):
+            db_delete_session(st.session_state.current_session_id)
+            rem = db_get_user_sessions(st.session_state.user_id)
+            if rem:
+                st.session_state.current_session_id = rem[0][0]
+            else:
+                new_sid = str(uuid.uuid4())
+                db_create_session(st.session_state.user_id, new_sid, "Nayi Chat")
+                db_save_message(new_sid, "assistant", SHORT_HELLO_MSG)
+                st.session_state.current_session_id = new_sid
+            st.session_state.pending_adult_query = None
+            st.rerun()
 
-    # 2. 🎭 Gunnu Mode Selector
-    st.markdown("### 🎭 Gunnu Ka Mode")
-    ai_mode = st.selectbox(
-        "Kaisa jawab chahiye?",
-        [
-            "🌸 All-Rounder (Default)",
-            "🎓 Padhai & Exam Helper",
-            "💻 Coding & Tech Pro",
-            "🍳 MasterChef Recipes",
-            "😄 Mazaak & Entertainment"
-        ],
-        label_visibility="collapsed"
-    )
+        st.divider()
 
-    # 3. Share & Export
-    export_lines = [
-        "=== Gunnu AI Chat Notes - Created by Mohit Pareek ===",
-        f"Export Date: {datetime.datetime.now().strftime('%d %b %Y, %I:%M %p')}\n"
-    ]
-    for m in st.session_state.messages:
-        pfx = "👤 User:" if m["role"] == "user" else "🌸 Gunnu:"
-        export_lines.append(f"{pfx}\n{m['content']}\n")
-    export_data = "\n".join(export_lines)
-    
-    st.download_button(
-        "📥 Chat Notes Download Karein (TXT)",
-        data=export_data,
-        file_name=f"gunnu_notes_{st.session_state.current_session_id[:8]}.txt",
-        mime="text/plain",
-        use_container_width=True
-    )
+        # 4. 📸 Camera & Photo Search (Vision AI)
+        st.markdown("**📸 Camera Se Photo Search:**")
+        cam_source = st.radio("Photo Source:", ["📸 Live Camera", "📁 Gallery Upload"], horizontal=True, key="pop_cam_radio")
+        
+        pop_photo_file = None
+        if cam_source == "📸 Live Camera":
+            pop_photo_file = st.camera_input("Camera se photo kheenchein 📸", key="pop_camera_input")
+        else:
+            pop_photo_file = st.file_uploader("Gallery se photo upload karein 📁", type=["jpg", "jpeg", "png", "webp"], key="pop_file_uploader")
 
-    share_msg = urllib.parse.quote(
-        "🌸 Bhai maine Mohit Pareek ki banayi hui 'Gunnu AI' try ki!\n"
-        "Isme Camera se photo search, AI image generation aur chat history sab kuch hai.\n"
-        "Tu bhi try kar: https://nquetgwc75mw3kzta5kqch.streamlit.app"
-    )
-    st.link_button("📲 Dosto Ko WhatsApp Par Bhejein", f"https://wa.me/?text={share_msg}", use_container_width=True)
+        if pop_photo_file is not None:
+            st.image(pop_photo_file, caption="Selected Photo", use_container_width=True)
+            pop_photo_query = st.text_input("Photo ke baare me sawaal (Optional):", placeholder="Yeh kya cheez hai? / Iska solution batao...", key="pop_photo_q")
+            if st.button("🔍 Photo Search Karein", use_container_width=True, type="primary", key="pop_btn_search_photo"):
+                b64_img = process_uploaded_image(pop_photo_file)
+                if b64_img:
+                    q_text = pop_photo_query.strip() if pop_photo_query.strip() else "Is photo ko dhyan se dekho aur detail me batao ki isme kya hai."
+                    db_save_message(st.session_state.current_session_id, "user", f"📷 [Photo Attached]: {q_text}", image_data=b64_img)
+                    st.session_state.messages.append({"role": "user", "content": f"📷 [Photo Attached]: {q_text}", "image_data": b64_img})
+                    
+                    sys_v = "You are 'Gunnu', an intelligent female AI assistant with vision created by Mohit Pareek. Analyze the photo and answer politely in Hindi/Hinglish."
+                    with st.spinner("Gunnu photo analyse kar rahi hai... 🔍🌸"):
+                        v_ans = call_ai_engine(ACTIVE_API_KEY, q_text, sys_v, history_messages=st.session_state.messages, image_b64=b64_img)
+                    db_save_message(st.session_state.current_session_id, "assistant", v_ans)
+                    st.session_state.messages.append({"role": "assistant", "content": v_ans, "image_data": None})
+                    st.rerun()
 
-    st.divider()
-    enable_web_search = st.checkbox("🔍 Live Web Search (Taaza Jankari)", value=True)
-    enable_voice = st.checkbox("🔊 Voice Mode (Awaaz me Suno)", value=False)
+        st.divider()
 
-    st.caption(f"👤 **Aapki User ID:** `{st.session_state.user_id}`")
-    st.caption("✨ Developed with ❤️ by **Mohit Pareek**")
+        # 5. 🎨 Daily Photo Limit
+        st.markdown("**🎨 Daily AI Photo Limit (24hr):**")
+        used_images = db_get_image_quota_count(st.session_state.user_id)
+        remaining_images = max(0, 5 - used_images)
+        st.progress(min(1.0, used_images / 5.0))
+        st.caption(f"Used: `{used_images} / 5` | Bachi: `{remaining_images} free`")
+        if used_images >= 5:
+            st.error("⚠️ **24 Ghante Ki Limit Puri (5/5)!**\n\nExtra photo ke liye **₹5/photo** on **7357661766** (GPay/PhonePe/UPI)")
+
+        st.divider()
+
+        # 6. 🎭 Gunnu Mode Selector
+        st.markdown("**🎭 Gunnu Ka Mode:**")
+        ai_mode = st.selectbox(
+            "Kaisa jawab chahiye?",
+            [
+                "🌸 All-Rounder (Default)",
+                "🎓 Padhai & Exam Helper",
+                "💻 Coding & Tech Pro",
+                "🍳 MasterChef Recipes",
+                "😄 Mazaak & Entertainment"
+            ],
+            index=0,
+            label_visibility="collapsed",
+            key="pop_ai_mode_select"
+        )
+
+        st.divider()
+
+        # 7. 📥 Export & Share
+        export_lines = [
+            "=== Gunnu AI Chat Notes - Created by Mohit Pareek ===",
+            f"Export Date: {datetime.datetime.now().strftime('%d %b %Y, %I:%M %p')}\n"
+        ]
+        for m in st.session_state.messages:
+            pfx = "👤 User:" if m["role"] == "user" else "🌸 Gunnu:"
+            export_lines.append(f"{pfx}\n{m['content']}\n")
+        export_data = "\n".join(export_lines)
+        
+        st.download_button(
+            "📥 Chat Notes Download Karein",
+            data=export_data,
+            file_name=f"gunnu_notes_{st.session_state.current_session_id[:8]}.txt",
+            mime="text/plain",
+            use_container_width=True,
+            key="pop_btn_download"
+        )
+        
+        share_msg = urllib.parse.quote(
+            "🌸 Bhai maine Mohit Pareek ki banayi hui 'Gunnu AI' try ki!\n"
+            "Isme Camera se photo search, AI image generation aur chat history sab kuch hai.\n"
+            "Tu bhi try kar: https://nquetgwc75mw3kzta5kqch.streamlit.app"
+        )
+        st.link_button("📲 Dosto Ko WhatsApp Par Bhejein", f"https://wa.me/?text={share_msg}", use_container_width=True)
+
+        st.divider()
+        enable_web_search = st.checkbox("🔍 Live Web Search", value=True, key="pop_web_search")
+        enable_voice = st.checkbox("🔊 Voice Mode (Awaaz me Suno)", value=False, key="pop_voice_mode")
+
+        st.caption(f"👤 User ID: `{st.session_state.user_id}`")
+        st.caption("✨ Developed with ❤️ by **Mohit Pareek**")
+
+# Settings fallback
+ai_mode = st.session_state.get("pop_ai_mode_select", "🌸 All-Rounder (Default)")
+enable_web_search = st.session_state.get("pop_web_search", True)
+enable_voice = st.session_state.get("pop_voice_mode", False)
 
 # ==============================================================================
-# 💬 7. DISPLAY CHAT MESSAGES & AUDIO PLAYBACK
+# 💬 6. DISPLAY CHAT MESSAGES (Recent Chats on Home Screen)
 # ==============================================================================
 for idx, msg in enumerate(st.session_state.messages):
     with st.chat_message(msg["role"]):
@@ -872,7 +989,7 @@ for idx, msg in enumerate(st.session_state.messages):
             st.components.v1.html(audio_html, height=36)
 
 # ==============================================================================
-# 🚀 8. COMPACT USER PROMPT HANDLING
+# 🚀 7. COMPACT USER PROMPT HANDLING
 # ==============================================================================
 if prompt := st.chat_input("Gunnu se poochhein..."):
     db_save_message(st.session_state.current_session_id, "user", prompt)
