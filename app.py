@@ -16,7 +16,7 @@ import io
 import uuid
 
 # ==============================================================================
-# 🌸 1. PAGE CONFIGURATION & ULTRA-MODERN PROFESSIONAL THEME
+# 🌸 1. PAGE CONFIGURATION
 # ==============================================================================
 st.set_page_config(
     page_title="Gunnu AI - Aapki Personal Assistant",
@@ -25,235 +25,13 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Deep Studio Theme with Ambient Glow, Glassmorphism & Complete White-Labeling (100% Safe CSS)
-st.markdown("""
-<style>
-    /* 1. Hide Streamlit Chrome & Headers Safely (Zero React DOM Interference) */
-    #MainMenu {visibility: hidden; display: none !important;}
-    header {visibility: hidden; display: none !important;}
-    footer {visibility: hidden; display: none !important;}
-    [data-testid="stToolbar"] {visibility: hidden; display: none !important;}
-    [data-testid="stDecoration"] {visibility: hidden; display: none !important;}
-    [data-testid="stStatusWidget"] {visibility: hidden; display: none !important;}
-    .stStatusWidget {visibility: hidden; display: none !important;}
-    .viewerBadge_container__1QSob {visibility: hidden; display: none !important;}
-    [data-testid="manage-app-button"] {visibility: hidden; display: none !important;}
-    #manage-app-button {visibility: hidden; display: none !important;}
-    .stAppDeployButton {visibility: hidden; display: none !important;}
-    .stDeployButton {visibility: hidden; display: none !important;}
-    .stConnectionStatus {visibility: hidden; display: none !important;}
-    div[class*="viewerBadge"] {visibility: hidden; display: none !important;}
-    div[class*="StatusWidget"] {visibility: hidden; display: none !important;}
-    div[class*="manage-app"] {visibility: hidden; display: none !important;}
-    div[class*="stDeploy"] {visibility: hidden; display: none !important;}
-    iframe[title="Streamlit App Status"] {visibility: hidden; display: none !important;}
-    a[href*="streamlit.io"] {visibility: hidden; display: none !important;}
-
-    /* Failsafe to position any floating button far offscreen */
-    #manage-app-button,
-    [data-testid="manage-app-button"],
-    .viewerBadge_container__1QSob,
-    [data-testid="stStatusWidget"],
-    .stAppDeployButton,
-    .stDeployButton,
-    div[class*="viewerBadge"],
-    div[class*="StatusWidget"],
-    div[class*="manage-app"] {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        position: fixed !important;
-        left: -9999px !important;
-        bottom: -9999px !important;
-        width: 0 !important;
-        height: 0 !important;
-    }
-
-    /* 2. Deep Midnight Background with Subtle Ambient Glow */
-    .stApp {
-        background: radial-gradient(circle at 12% 15%, rgba(255, 107, 139, 0.08) 0%, transparent 45%),
-                    radial-gradient(circle at 88% 85%, rgba(138, 43, 226, 0.08) 0%, transparent 45%),
-                    #0b0f17 !important;
-        color: #e6edf3 !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
-    }
-
-    /* 3. Main Chat Container */
-    .block-container {
-        padding-top: 0.6rem !important;
-        padding-bottom: 3.2rem !important;
-        max-width: 760px !important;
-    }
-
-    /* 4. Top Header Bar Layout */
-    .gunnu-header-brand {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 4px 0;
-    }
-    .gunnu-logo-icon {
-        font-size: 2.1rem;
-        line-height: 1;
-    }
-    .gunnu-title-text {
-        font-size: 1.55rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        line-height: 1.1;
-        background: linear-gradient(135deg, #ff6b8b 0%, #ff8e53 50%, #ffc371 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .gunnu-sub-text {
-        color: #8b949e;
-        font-size: 0.78rem;
-        line-height: 1.2;
-        margin-top: 2px;
-    }
-
-    /* 5. 3-Dot Menu Popover Button Styling */
-    div[data-testid="stPopover"] {
-        display: flex;
-        justify-content: flex-end;
-    }
-    div[data-testid="stPopover"] > button {
-        border-radius: 50% !important;
-        width: 42px !important;
-        height: 42px !important;
-        font-size: 1.5rem !important;
-        font-weight: 900 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        background: rgba(22, 27, 34, 0.85) !important;
-        border: 1px solid rgba(255, 107, 139, 0.45) !important;
-        color: #ff6b8b !important;
-        padding: 0 !important;
-        margin-left: auto !important;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35) !important;
-        transition: all 0.2s ease !important;
-    }
-    div[data-testid="stPopover"] > button:hover {
-        background: rgba(255, 107, 139, 0.25) !important;
-        border-color: #ff6b8b !important;
-        color: #ffffff !important;
-        transform: scale(1.08) !important;
-    }
-    div[data-testid="stPopoverBody"] {
-        background: rgba(13, 17, 23, 0.98) !important;
-        backdrop-filter: blur(24px) !important;
-        border: 1px solid rgba(255, 107, 139, 0.35) !important;
-        border-radius: 16px !important;
-        padding: 16px !important;
-        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65) !important;
-        max-height: 84vh !important;
-    }
-
-    /* 6. Message Bubble Styling */
-    [data-testid="stChatMessage"] {
-        background: rgba(22, 27, 34, 0.65) !important;
-        border: 1px solid rgba(255, 255, 255, 0.07) !important;
-        border-radius: 14px !important;
-        padding: 12px 16px !important;
-        margin-bottom: 12px !important;
-        backdrop-filter: blur(10px) !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22) !important;
-    }
-    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {
-        border-left: 3px solid #ff6b8b !important;
-        background: rgba(24, 28, 38, 0.75) !important;
-    }
-
-    /* 7. Chat Input Floating Bar - Compact & Sleek for Mobile */
-    div[data-testid="stBottom"] {
-        background: transparent !important;
-        padding-bottom: 6px !important;
-        padding-top: 2px !important;
-    }
-    div[data-testid="stBottom"] > div {
-        background: transparent !important;
-        padding: 0 !important;
-    }
-    [data-testid="stChatInput"] {
-        padding: 0 4px !important;
-    }
-    .stChatInputContainer {
-        border-radius: 20px !important;
-        background: rgba(18, 22, 32, 0.96) !important;
-        backdrop-filter: blur(16px) !important;
-        border: 1px solid rgba(255, 107, 139, 0.4) !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
-        padding: 2px 8px !important;
-        min-height: 40px !important;
-    }
-    .stChatInputContainer:focus-within {
-        border-color: #ff6b8b !important;
-        box-shadow: 0 0 12px rgba(255, 107, 139, 0.35) !important;
-    }
-    .stChatInputContainer textarea {
-        font-size: 0.88rem !important;
-        line-height: 1.35 !important;
-        min-height: 34px !important;
-        max-height: 56px !important;
-        padding-top: 6px !important;
-        padding-bottom: 6px !important;
-        color: #f0f6fc !important;
-    }
-    .stChatInputContainer button {
-        padding: 2px 4px !important;
-        margin-bottom: 2px !important;
-        transform: scale(0.9) !important;
-    }
-
-    /* 8. Buttons & Controls */
-    .stButton > button {
-        border-radius: 10px !important;
-        font-size: 0.85rem !important;
-        font-weight: 600 !important;
-        padding: 5px 12px !important;
-        transition: all 0.2s ease !important;
-        border: 1px solid rgba(255, 107, 139, 0.3) !important;
-    }
-    .stButton > button:hover {
-        border-color: #ff6b8b !important;
-        box-shadow: 0 0 12px rgba(255, 107, 139, 0.35) !important;
-        transform: translateY(-1px) !important;
-    }
-
-    /* 9. Dropdown Selectbox */
-    div[data-testid="stSelectbox"] > div {
-        border-radius: 10px !important;
-        font-size: 0.86rem !important;
-    }
-
-    /* 10. Progress Bar */
-    .stProgress > div > div > div > div {
-        background: linear-gradient(90deg, #ff6b8b, #ff8e53) !important;
-        border-radius: 10px !important;
-    }
-
-    /* 11. Tabs in Popover */
-    div[data-testid="stTabs"] [data-baseweb="tab-list"] {
-        gap: 8px !important;
-    }
-    div[data-testid="stTabs"] button[role="tab"] {
-        border-radius: 8px !important;
-        padding: 6px 12px !important;
-        font-size: 0.84rem !important;
-        font-weight: 600 !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 # ==============================================================================
-# 🗄️ 2. DATABASE MANAGEMENT (SQLite WAL Mode Persistent Engine)
+# 🗄️ 2. DATABASE MANAGEMENT (SQLite WAL Mode Persistent Engine, Thread-Safe)
 # ==============================================================================
 DB_FILE = os.path.join(os.path.dirname(__file__), "gunnu_data.db")
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_FILE, timeout=20.0)
+    conn = sqlite3.connect(DB_FILE, timeout=25.0, check_same_thread=False)
     conn.execute("PRAGMA journal_mode=WAL;")
     return conn
 
@@ -292,9 +70,19 @@ def init_db():
     CREATE TABLE IF NOT EXISTS user_profiles (
         user_id TEXT PRIMARY KEY,
         name TEXT,
+        theme TEXT,
         updated_at TEXT
     )
     """)
+    # Check and migrate columns if missing
+    c.execute("PRAGMA table_info(user_profiles)")
+    cols = [col[1] for col in c.fetchall()]
+    if "theme" not in cols:
+        try:
+            c.execute("ALTER TABLE user_profiles ADD COLUMN theme TEXT")
+        except Exception:
+            pass
+
     c.execute("""
     CREATE TABLE IF NOT EXISTS redeemed_promos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -309,11 +97,378 @@ def init_db():
 
 init_db()
 
-def db_create_session(user_id, session_id, title="Nayi Chat"):
+# ==============================================================================
+# 👤 3. USER ID & ACTIVE THEME SETUP (Early Initialization for Instant Theming)
+# ==============================================================================
+raw_u = ""
+try:
+    if "u" in st.query_params:
+        param_u = st.query_params["u"]
+        raw_u = param_u[0] if isinstance(param_u, list) else str(param_u)
+except Exception:
+    pass
+
+if raw_u.strip():
+    user_id = raw_u.strip()
+else:
+    user_id = "u_" + uuid.uuid4().hex[:8]
+    try:
+        st.query_params["u"] = user_id
+    except Exception:
+        pass
+
+if "user_id" not in st.session_state:
+    st.session_state.user_id = user_id
+
+def db_get_user_theme(u_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    try:
+        c.execute("SELECT theme FROM user_profiles WHERE user_id = ?", (u_id,))
+        row = c.fetchone()
+        conn.close()
+        return row[0] if row and row[0] else "🌸 Sakura Pink (Default)"
+    except Exception:
+        conn.close()
+        return "🌸 Sakura Pink (Default)"
+
+def db_set_user_theme(u_id, theme_name):
+    conn = get_db_connection()
+    c = conn.cursor()
+    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    c.execute("UPDATE user_profiles SET theme = ?, updated_at = ? WHERE user_id = ?", (theme_name, now, u_id))
+    if c.rowcount == 0:
+        c.execute("INSERT OR REPLACE INTO user_profiles (user_id, theme, updated_at) VALUES (?, ?, ?)", (u_id, theme_name, now))
+    conn.commit()
+    conn.close()
+
+# Theme Presets
+THEME_PRESETS = {
+    "🌸 Sakura Pink (Default)": {
+        "primary": "#ff6b8b",
+        "secondary": "#ff8e53",
+        "gradient": "linear-gradient(135deg, #ff6b8b 0%, #ff8e53 50%, #ffc371 100%)",
+        "glow": "rgba(255, 107, 139, 0.35)",
+        "border": "rgba(255, 107, 139, 0.45)",
+        "bg_radial1": "rgba(255, 107, 139, 0.08)",
+        "bg_radial2": "rgba(138, 43, 226, 0.08)",
+    },
+    "👑 Royal Gold": {
+        "primary": "#f59e0b",
+        "secondary": "#fbbf24",
+        "gradient": "linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
+        "glow": "rgba(245, 158, 11, 0.35)",
+        "border": "rgba(245, 158, 11, 0.45)",
+        "bg_radial1": "rgba(245, 158, 11, 0.09)",
+        "bg_radial2": "rgba(217, 119, 6, 0.07)",
+    },
+    "⚡ Cyber Cyan": {
+        "primary": "#06b6d4",
+        "secondary": "#3b82f6",
+        "gradient": "linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #3b82f6 100%)",
+        "glow": "rgba(6, 182, 212, 0.35)",
+        "border": "rgba(6, 182, 212, 0.45)",
+        "bg_radial1": "rgba(6, 182, 212, 0.09)",
+        "bg_radial2": "rgba(59, 130, 246, 0.08)",
+    },
+    "💜 Electric Purple": {
+        "primary": "#a855f7",
+        "secondary": "#ec4899",
+        "gradient": "linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #ec4899 100%)",
+        "glow": "rgba(168, 85, 247, 0.35)",
+        "border": "rgba(168, 85, 247, 0.45)",
+        "bg_radial1": "rgba(168, 85, 247, 0.09)",
+        "bg_radial2": "rgba(236, 72, 153, 0.08)",
+    },
+    "🌿 Emerald Mint": {
+        "primary": "#10b981",
+        "secondary": "#059669",
+        "gradient": "linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%)",
+        "glow": "rgba(16, 185, 129, 0.35)",
+        "border": "rgba(16, 185, 129, 0.45)",
+        "bg_radial1": "rgba(16, 185, 129, 0.09)",
+        "bg_radial2": "rgba(5, 150, 105, 0.08)",
+    }
+}
+
+if "accent_theme" not in st.session_state:
+    st.session_state.accent_theme = db_get_user_theme(st.session_state.user_id)
+
+current_theme_key = st.session_state.accent_theme if st.session_state.accent_theme in THEME_PRESETS else "🌸 Sakura Pink (Default)"
+cur_theme = THEME_PRESETS[current_theme_key]
+
+# ==============================================================================
+# 🎨 4. ULTRA-MODERN PROFESSIONAL THEME & 100% SAFE ZERO-REACT CSS
+# ==============================================================================
+st.markdown(f"""
+<style>
+    /* 1. Complete White-Labeling & Failsafe Chrome Removal */
+    #MainMenu {{visibility: hidden; display: none !important;}}
+    header {{visibility: hidden; display: none !important;}}
+    footer {{visibility: hidden; display: none !important;}}
+    [data-testid="stToolbar"] {{visibility: hidden; display: none !important;}}
+    [data-testid="stDecoration"] {{visibility: hidden; display: none !important;}}
+    [data-testid="stStatusWidget"] {{visibility: hidden; display: none !important;}}
+    .stStatusWidget {{visibility: hidden; display: none !important;}}
+    .viewerBadge_container__1QSob {{visibility: hidden; display: none !important;}}
+    [data-testid="manage-app-button"] {{visibility: hidden; display: none !important;}}
+    #manage-app-button {{visibility: hidden; display: none !important;}}
+    .stAppDeployButton {{visibility: hidden; display: none !important;}}
+    .stDeployButton {{visibility: hidden; display: none !important;}}
+    .stConnectionStatus {{visibility: hidden; display: none !important;}}
+    div[class*="viewerBadge"] {{visibility: hidden; display: none !important;}}
+    div[class*="StatusWidget"] {{visibility: hidden; display: none !important;}}
+    div[class*="manage-app"] {{visibility: hidden; display: none !important;}}
+    button[class*="manage-app"] {{visibility: hidden; display: none !important;}}
+    div[class*="stDeploy"] {{visibility: hidden; display: none !important;}}
+    iframe[title="Streamlit App Status"] {{visibility: hidden; display: none !important;}}
+    a[href*="streamlit.io"] {{visibility: hidden; display: none !important;}}
+
+    #manage-app-button,
+    [data-testid="manage-app-button"],
+    .viewerBadge_container__1QSob,
+    [data-testid="stStatusWidget"],
+    .stAppDeployButton,
+    .stDeployButton,
+    div[class*="viewerBadge"],
+    div[class*="StatusWidget"],
+    div[class*="manage-app"],
+    button[class*="manage-app"] {{
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: fixed !important;
+        left: -9999px !important;
+        bottom: -9999px !important;
+        width: 0 !important;
+        height: 0 !important;
+    }}
+
+    /* 2. Deep Midnight Background with Active Accent Radial Glow */
+    .stApp {{
+        background: radial-gradient(circle at 12% 15%, {cur_theme['bg_radial1']} 0%, transparent 45%),
+                    radial-gradient(circle at 88% 85%, {cur_theme['bg_radial2']} 0%, transparent 45%),
+                    #0b0f17 !important;
+        color: #e6edf3 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    }}
+
+    /* 3. Main Chat Container */
+    .block-container {{
+        padding-top: 0.6rem !important;
+        padding-bottom: 3.2rem !important;
+        max-width: 760px !important;
+    }}
+
+    /* 4. Top Header Bar Layout */
+    .gunnu-header-brand {{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 0;
+    }}
+    .gunnu-logo-icon {{
+        font-size: 2.1rem;
+        line-height: 1;
+    }}
+    .gunnu-title-text {{
+        font-size: 1.55rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        line-height: 1.1;
+        background: {cur_theme['gradient']};
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }}
+    .gunnu-sub-text {{
+        color: #8b949e;
+        font-size: 0.78rem;
+        line-height: 1.2;
+        margin-top: 2px;
+    }}
+
+    /* 5. 3-Dot Menu Popover Button Styling */
+    div[data-testid="stPopover"] {{
+        display: flex;
+        justify-content: flex-end;
+    }}
+    div[data-testid="stPopover"] > button {{
+        border-radius: 50% !important;
+        width: 42px !important;
+        height: 42px !important;
+        font-size: 1.5rem !important;
+        font-weight: 900 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(22, 27, 34, 0.85) !important;
+        border: 1px solid {cur_theme['border']} !important;
+        color: {cur_theme['primary']} !important;
+        padding: 0 !important;
+        margin-left: auto !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35) !important;
+        transition: all 0.2s ease !important;
+    }}
+    div[data-testid="stPopover"] > button:hover {{
+        background: {cur_theme['glow']} !important;
+        border-color: {cur_theme['primary']} !important;
+        color: #ffffff !important;
+        transform: scale(1.08) !important;
+    }}
+    div[data-testid="stPopoverBody"] {{
+        background: rgba(13, 17, 23, 0.98) !important;
+        backdrop-filter: blur(24px) !important;
+        border: 1px solid {cur_theme['border']} !important;
+        border-radius: 16px !important;
+        padding: 16px !important;
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65) !important;
+        max-height: 84vh !important;
+    }}
+
+    /* 6. Message Bubble Styling */
+    [data-testid="stChatMessage"] {{
+        background: rgba(22, 27, 34, 0.65) !important;
+        border: 1px solid rgba(255, 255, 255, 0.07) !important;
+        border-radius: 14px !important;
+        padding: 12px 16px !important;
+        margin-bottom: 12px !important;
+        backdrop-filter: blur(10px) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22) !important;
+    }}
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {{
+        border-left: 3px solid {cur_theme['primary']} !important;
+        background: rgba(24, 28, 38, 0.75) !important;
+    }}
+
+    /* Markdown Tables & Lists inside Chat */
+    .stChatMessage table {{
+        border-collapse: collapse !important;
+        width: 100% !important;
+        margin: 8px 0 !important;
+        font-size: 0.85rem !important;
+    }}
+    .stChatMessage th, .stChatMessage td {{
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        padding: 6px 10px !important;
+        text-align: left !important;
+    }}
+    .stChatMessage th {{
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: {cur_theme['primary']} !important;
+    }}
+    .stChatMessage blockquote {{
+        border-left: 3px solid {cur_theme['primary']} !important;
+        padding-left: 10px !important;
+        margin-left: 0 !important;
+        color: #8b949e !important;
+    }}
+
+    /* 7. Chat Input Floating Bar - Compact & Sleek for Mobile */
+    div[data-testid="stBottom"] {{
+        background: transparent !important;
+        padding-bottom: 6px !important;
+        padding-top: 2px !important;
+    }}
+    div[data-testid="stBottom"] > div {{
+        background: transparent !important;
+        padding: 0 !important;
+    }}
+    [data-testid="stChatInput"] {{
+        padding: 0 4px !important;
+    }}
+    .stChatInputContainer {{
+        border-radius: 20px !important;
+        background: rgba(18, 22, 32, 0.96) !important;
+        backdrop-filter: blur(16px) !important;
+        border: 1px solid {cur_theme['border']} !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+        padding: 2px 8px !important;
+        min-height: 40px !important;
+    }}
+    .stChatInputContainer:focus-within {{
+        border-color: {cur_theme['primary']} !important;
+        box-shadow: 0 0 12px {cur_theme['glow']} !important;
+    }}
+    .stChatInputContainer textarea {{
+        font-size: 0.88rem !important;
+        line-height: 1.35 !important;
+        min-height: 34px !important;
+        max-height: 56px !important;
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        color: #f0f6fc !important;
+    }}
+    .stChatInputContainer button {{
+        padding: 2px 4px !important;
+        margin-bottom: 2px !important;
+        transform: scale(0.9) !important;
+    }}
+
+    /* 8. Buttons & Controls */
+    .stButton > button {{
+        border-radius: 10px !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        padding: 5px 12px !important;
+        transition: all 0.2s ease !important;
+        border: 1px solid {cur_theme['border']} !important;
+    }}
+    .stButton > button:hover {{
+        border-color: {cur_theme['primary']} !important;
+        box-shadow: 0 0 12px {cur_theme['glow']} !important;
+        transform: translateY(-1px) !important;
+    }}
+
+    /* 9. Dropdown Selectbox */
+    div[data-testid="stSelectbox"] > div {{
+        border-radius: 10px !important;
+        font-size: 0.86rem !important;
+    }}
+
+    /* 10. Progress Bar */
+    .stProgress > div > div > div > div {{
+        background: {cur_theme['gradient']} !important;
+        border-radius: 10px !important;
+    }}
+
+    /* 11. Tabs in Popover */
+    div[data-testid="stTabs"] [data-baseweb="tab-list"] {{
+        gap: 8px !important;
+    }}
+    div[data-testid="stTabs"] button[role="tab"] {{
+        border-radius: 8px !important;
+        padding: 6px 12px !important;
+        font-size: 0.84rem !important;
+        font-weight: 600 !important;
+    }}
+
+    /* 12. Smooth Thin Scrollbars */
+    ::-webkit-scrollbar {{
+        width: 6px;
+        height: 6px;
+    }}
+    ::-webkit-scrollbar-track {{
+        background: rgba(11, 15, 23, 0.5);
+    }}
+    ::-webkit-scrollbar-thumb {{
+        background: {cur_theme['border']};
+        border-radius: 3px;
+    }}
+    ::-webkit-scrollbar-thumb:hover {{
+        background: {cur_theme['primary']};
+    }}
+</style>
+""", unsafe_allow_html=True)
+
+# ==============================================================================
+# 🗄️ 5. DATABASE OPERATIONS & BUSINESS LOGIC
+# ==============================================================================
+def db_create_session(u_id, session_id, title="Nayi Chat"):
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("INSERT OR REPLACE INTO sessions VALUES (?, ?, ?, ?, ?)", (session_id, user_id, title, now, now))
+    c.execute("INSERT OR REPLACE INTO sessions VALUES (?, ?, ?, ?, ?)", (session_id, u_id, title, now, now))
     conn.commit()
     conn.close()
 
@@ -327,8 +482,12 @@ def db_save_message(session_id, role, content, image_data=None):
     if role == "user":
         c.execute("SELECT COUNT(1) FROM messages WHERE session_id = ? AND role = 'user'", (session_id,))
         if c.fetchone()[0] == 1:
-            clean_title = content.strip().replace("\n", " ")[:26]
-            title = clean_title + ("..." if len(content.strip()) > 26 else "")
+            clean_title = content.strip().replace("\n", " ")
+            clean_title = re.sub(r'^(📷\s*\[Photo Attached\]:\s*|🎨\s*Photo Banao:\s*|📄\s*\[Document:[^\]]+\]:\s*|✍️\s*\[English Writer - [^\]]+\]:\s*|🧮\s*\[Math Solver\]:\s*)', '', clean_title, flags=re.IGNORECASE)
+            clean_title = clean_title.strip()[:26]
+            title = clean_title + ("..." if len(clean_title) > 26 else "")
+            if not title:
+                title = "Nayi Chat"
             c.execute("UPDATE sessions SET title = ? WHERE session_id = ?", (title, session_id))
     conn.commit()
     conn.close()
@@ -341,13 +500,24 @@ def db_get_session_messages(session_id):
     conn.close()
     return [{"role": r[0], "content": r[1], "image_data": r[2]} for r in rows]
 
-def db_get_user_sessions(user_id):
+def db_get_user_sessions(u_id):
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("SELECT session_id, title, updated_at FROM sessions WHERE user_id = ? ORDER BY updated_at DESC", (user_id,))
+    c.execute("SELECT session_id, title, updated_at FROM sessions WHERE user_id = ? ORDER BY updated_at DESC", (u_id,))
     rows = c.fetchall()
     conn.close()
     return rows
+
+def db_rename_session(session_id, new_title):
+    clean = new_title.strip()[:35]
+    if not clean:
+        return
+    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("UPDATE sessions SET title = ?, updated_at = ? WHERE session_id = ?", (clean, now, session_id))
+    conn.commit()
+    conn.close()
 
 def db_delete_session(session_id):
     conn = get_db_connection()
@@ -364,23 +534,32 @@ def db_clear_session_messages(session_id):
     conn.commit()
     conn.close()
 
-def db_get_image_quota_count(user_id):
+def db_get_image_quota_count(u_id):
     """Counts photos generated by user in last 24 hours (Base Limit: 5 per 24hr)"""
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("SELECT COUNT(1) FROM image_quota WHERE user_id = ? AND created_at >= datetime('now', '-24 hours')", (user_id,))
+    c.execute("SELECT COUNT(1) FROM image_quota WHERE user_id = ? AND created_at >= datetime('now', '-24 hours')", (u_id,))
     count = c.fetchone()[0]
     conn.close()
     return count
 
-def db_record_image_gen(user_id, prompt, image_url):
+def db_record_image_gen(u_id, prompt, image_url):
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     conn = get_db_connection()
     c = conn.cursor()
     c.execute("INSERT INTO image_quota (user_id, prompt, image_url, created_at) VALUES (?, ?, ?, ?)",
-              (user_id, prompt, image_url, now))
+              (u_id, prompt, image_url, now))
     conn.commit()
     conn.close()
+
+def db_get_user_recent_images(u_id, limit=6):
+    """Fetches user's latest generated images for the in-app Photo Gallery"""
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT prompt, image_url, created_at FROM image_quota WHERE user_id = ? ORDER BY id DESC LIMIT ?", (u_id, limit))
+    rows = c.fetchall()
+    conn.close()
+    return rows
 
 # 🎟️ VIP PROMO CODE SYSTEM
 PROMO_CODES = {
@@ -393,22 +572,22 @@ PROMO_CODES = {
     "FREE7357661766": 10
 }
 
-def db_get_user_bonus_photos(user_id):
+def db_get_user_bonus_photos(u_id):
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("SELECT COALESCE(SUM(bonus_photos), 0) FROM redeemed_promos WHERE user_id = ?", (user_id,))
+    c.execute("SELECT COALESCE(SUM(bonus_photos), 0) FROM redeemed_promos WHERE user_id = ?", (u_id,))
     bonus = c.fetchone()[0]
     conn.close()
     return bonus
 
-def db_redeem_promo_code(user_id, code_str):
+def db_redeem_promo_code(u_id, code_str):
     code_clean = code_str.strip().upper()
     if code_clean not in PROMO_CODES:
         return False, "Yeh promo code galat hai ya expire ho chuka hai! Kripya sahi code dalein."
     
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("SELECT COUNT(1) FROM redeemed_promos WHERE user_id = ? AND code = ?", (user_id, code_clean))
+    c.execute("SELECT COUNT(1) FROM redeemed_promos WHERE user_id = ? AND code = ?", (u_id, code_clean))
     if c.fetchone()[0] > 0:
         conn.close()
         return False, "Aap yeh promo code pehle hi redeem kar chuke hain!"
@@ -416,40 +595,42 @@ def db_redeem_promo_code(user_id, code_str):
     bonus = PROMO_CODES[code_clean]
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     c.execute("INSERT INTO redeemed_promos (user_id, code, bonus_photos, redeemed_at) VALUES (?, ?, ?, ?)",
-              (user_id, code_clean, bonus, now))
+              (u_id, code_clean, bonus, now))
     conn.commit()
     conn.close()
     return True, f"Badhai ho! {bonus} Extra AI Photos unlock ho gayi hain! 🌸🎉"
 
-def db_get_image_quota_info(user_id):
-    used = db_get_image_quota_count(user_id)
-    bonus = db_get_user_bonus_photos(user_id)
+def db_get_image_quota_info(u_id):
+    used = db_get_image_quota_count(u_id)
+    bonus = db_get_user_bonus_photos(u_id)
     total_allowed = 5 + bonus
     remaining = max(0, total_allowed - used)
     return used, total_allowed, remaining, bonus
 
 # 🧠 USER NAME MEMORY SYSTEM
-def db_get_user_name(user_id):
+def db_get_user_name(u_id):
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("SELECT name FROM user_profiles WHERE user_id = ?", (user_id,))
+    c.execute("SELECT name FROM user_profiles WHERE user_id = ?", (u_id,))
     row = c.fetchone()
     conn.close()
     return row[0] if row and row[0] else None
 
-def db_set_user_name(user_id, name):
+def db_set_user_name(u_id, name):
     clean_name = name.strip()
     if not clean_name:
         return
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("INSERT OR REPLACE INTO user_profiles VALUES (?, ?, ?)", (user_id, clean_name, now))
+    c.execute("UPDATE user_profiles SET name = ?, updated_at = ? WHERE user_id = ?", (clean_name, now, u_id))
+    if c.rowcount == 0:
+        c.execute("INSERT OR REPLACE INTO user_profiles (user_id, name, updated_at) VALUES (?, ?, ?)", (u_id, clean_name, now))
     conn.commit()
     conn.close()
 
 # ==============================================================================
-# 🔒 3. SECURE API KEY & HELPER FUNCTIONS
+# 🔒 6. SECURE API KEY & HELPER FUNCTIONS
 # ==============================================================================
 ACTIVE_API_KEY = ""
 try:
@@ -480,7 +661,7 @@ def process_uploaded_image(image_file):
 
 def extract_text_from_file(file_obj, filename):
     ext = os.path.splitext(filename)[1].lower()
-    if ext == ".txt":
+    if ext in [".txt", ".csv", ".md"]:
         try:
             return file_obj.read().decode("utf-8", errors="ignore")
         except Exception:
@@ -509,7 +690,7 @@ def extract_text_from_file(file_obj, filename):
             pass
     return None
 
-# ⚡ ULTRA-FAST INSTANT ENGINE
+# ⚡ ULTRA-FAST INSTANT ENGINE (< 0.05s Zero Latency)
 def get_instant_response(query, user_name=None):
     q = query.strip().lower()
     q_clean = re.sub(r'[^\w\s]', '', q)
@@ -541,7 +722,15 @@ def get_instant_response(query, user_name=None):
     if any(p in q_clean for p in creator_patterns) or q_clean in ["mohit pareek", "mohit"]:
         return "Mujhe **Mohit Pareek** ne banaya hai! 🌸😊 Main aapki apni personal AI assistant hoon."
 
-    # 2. User Name Queries
+    # 2. Time & Date Queries (IST Instant Clock)
+    time_date_queries = ["aaj ki date", "today date", "aaj konsa din", "aaj kya din", "what is today", "current time", "aaj ka time", "kya time ho raha", "samay kya hai", "aaj ki tarikh", "today is what day"]
+    if any(tq in q_clean for tq in time_date_queries):
+        now_ist = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=5, minutes=30)))
+        date_str = now_ist.strftime("%d %B %Y, %I:%M %p")
+        day_str = now_ist.strftime("%A")
+        return f"Aaj **{day_str}**, **{date_str}** (IST) hai! 🌸✨ Kahiye, main aapki kya madad kar sakti hoon?"
+
+    # 3. User Name Queries
     name_check_queries = ["mera naam kya hai", "mera naam batao", "what is my name", "who am i", "do you know my name"]
     if any(nq in q_clean for nq in name_check_queries):
         if user_name:
@@ -549,7 +738,16 @@ def get_instant_response(query, user_name=None):
         else:
             return "Aapne abhi apna naam nahi bataya hai. Boliye, aapka shubh naam kya hai? (Jaise likhein: *'Mera naam Rahul hai'*) 🌸😊"
         
-    # 3. Greetings
+    # 4. Morning / Evening Festive Greetings
+    greeting_name = f" {user_name} ji" if user_name else ""
+    if any(m in q_clean for m in ["good morning", "subah bakhair", "shubh prabhat", "suprabhat"]):
+        return f"Shubh Prabhat{greeting_name}! 🌸☀️ Aapka din bohot shubh aur khushiyon bhara ho. Boliye, aaj main aapki kya madad kar sakti hoon?"
+    if any(e in q_clean for e in ["good evening", "shubh sandhya"]):
+        return f"Shubh Sandhya{greeting_name}! 🌸🌆 Kaisi rahi aapki shaam? Kahiye, aaj kya seekhna ya poochhna chahte hain aap?"
+    if any(a in q_clean for a in ["good afternoon"]):
+        return f"Good Afternoon{greeting_name}! 🌸 Kahiye, aaj main aapki kya help kar sakti hoon?"
+
+    # 5. General Greetings
     greetings = [
         "hi", "hii", "hiii", "hello", "helo", "hlo", "hlw", "hey", "heyy", "hy", "hyy",
         "yo", "hola", "namaste", "namaskar", "pranam", "sup",
@@ -557,7 +755,6 @@ def get_instant_response(query, user_name=None):
         "hii gunnu", "hello gunnu", "hlo gunnu", "hey gunnu"
     ]
     if q_clean in greetings or (len(q_clean.split()) <= 2 and any(q_clean.startswith(g) for g in ["hi", "hello", "helo", "hlo", "hey", "namaste"])):
-        greeting_name = f" {user_name} ji" if user_name else ""
         replies = [
             f"Hii{greeting_name}! 🌸 Kaise ho aap? Boliye, main aapki kya madad kar sakti hoon?",
             f"Hello{greeting_name}! 🌸 Main Gunnu hoon. Aaj main aapki kya help kar sakti hoon?",
@@ -565,15 +762,15 @@ def get_instant_response(query, user_name=None):
         ]
         return random.choice(replies)
         
-    # 4. How are you
+    # 6. How are you
     wellbeing = [
         "kaise ho", "kaisi ho", "kese ho", "kese hu", "how are you", 
         "kya haal hai", "kya hal hai", "kya chal raha hai", "all good", "sab badhiya"
     ]
     if any(w in q_clean for w in wellbeing) and len(q_clean.split()) <= 5:
-        return "Main bilkul badhiya aur khush hoon! 🌸✨ Aap bataiye, aapka din kaisa chal raha hai? Main aapki kya madad kar sakti hoon?"
+        return f"Main bilkul badhiya aur khush hoon{greeting_name}! 🌸✨ Aap bataiye, aapka din kaisa chal raha hai? Main aapki kya madad kar sakti hoon?"
         
-    # 5. Identity
+    # 7. Identity
     identity = [
         "tum kaun ho", "aap kaun ho", "who are you", "tera naam kya hai", 
         "apna naam batao", "tumhara naam kya hai", "introduce yourself", "apne baare me batao"
@@ -581,12 +778,12 @@ def get_instant_response(query, user_name=None):
     if any(i in q_clean for i in identity) and len(q_clean.split()) <= 6:
         return "Main hoon **Gunnu**, aapki apni personal AI assistant! 🌸✨ Mujhe padhai, coding, photo search, AI image generation ya kisi bhi sawaal me madad karne ke liye banaya gaya hai. Boliye, main aapke liye kya kar sakti hoon?"
         
-    # 6. Thank you
+    # 8. Thank you
     thanks = ["thank you", "thanks", "dhanyawad", "shukriya", "thx", "bahut shukriya"]
     if any(t in q_clean for t in thanks) and len(q_clean.split()) <= 4:
         return "Arey welcome! 🌸 Mujhe aapki madad karke bohot achha laga. Agar kuch aur poochhna ho toh hamesha hazir hoon!"
 
-    # 7. Bye
+    # 9. Bye
     bye = ["bye", "byee", "good night", "gn", "alvida", "tata", "see you"]
     if any(b in q_clean for b in bye) and len(q_clean.split()) <= 3:
         return "Alvida! Apna acche se dhyan rakhiyega 🌸 Phir milenge, take care! ✨"
@@ -623,11 +820,11 @@ def clean_image_prompt(query):
     cleaned = re.sub(r'\b(ek|koi|ki|mujhe|please)\b', '', cleaned, flags=re.IGNORECASE).strip()
     return cleaned if len(cleaned) > 2 else query
 
-def generate_ai_image(prompt_text, user_id, style_tag=None):
+def generate_ai_image(prompt_text, u_id, style_tag=None):
     if is_adult_query(prompt_text):
         return False, "Gunnu kisi bhi tarah ke 18+ ya ashleel photos create nahi karti. Kripya koi achhi aur creative photo banwane ko kahein! 🌸", None
 
-    used, total_allowed, remaining, bonus = db_get_image_quota_info(user_id)
+    used, total_allowed, remaining, bonus = db_get_image_quota_info(u_id)
     
     if used >= total_allowed:
         quota_exceeded_msg = (
@@ -673,7 +870,7 @@ def generate_ai_image(prompt_text, user_id, style_tag=None):
     random_seed = random.randint(1000, 999999)
     image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true&seed={random_seed}"
 
-    db_record_image_gen(user_id, cleaned_prompt, image_url)
+    db_record_image_gen(u_id, cleaned_prompt, image_url)
     new_used = used + 1
     new_remaining = max(0, total_allowed - new_used)
 
@@ -787,35 +984,15 @@ def call_ai_engine(api_key, prompt_text, system_instruction, history_messages=No
     return "Maaf kijiye, connection me issue hai. Kripya thodi der baad dobara try karein! 🌸"
 
 # ==============================================================================
-# 👤 4. USER ID & ACTIVE SESSION SETUP
+# 🗂️ 7. SESSION LIFECYCLE & GREETING SETUP
 # ==============================================================================
-raw_u = ""
-try:
-    if "u" in st.query_params:
-        param_u = st.query_params["u"]
-        raw_u = param_u[0] if isinstance(param_u, list) else str(param_u)
-except Exception:
-    pass
-
-if raw_u.strip():
-    user_id = raw_u.strip()
-else:
-    user_id = "u_" + uuid.uuid4().hex[:8]
-    try:
-        st.query_params["u"] = user_id
-    except Exception:
-        pass
-
-if "user_id" not in st.session_state:
-    st.session_state.user_id = user_id
-
 if "current_session_id" not in st.session_state:
-    past_sessions = db_get_user_sessions(user_id)
+    past_sessions = db_get_user_sessions(st.session_state.user_id)
     if past_sessions:
         st.session_state.current_session_id = past_sessions[0][0]
     else:
         new_sid = str(uuid.uuid4())
-        db_create_session(user_id, new_sid, "Nayi Chat")
+        db_create_session(st.session_state.user_id, new_sid, "Nayi Chat")
         st.session_state.current_session_id = new_sid
 
 user_saved_name = db_get_user_name(st.session_state.user_id)
@@ -824,9 +1001,6 @@ if user_saved_name:
 else:
     SHORT_HELLO_MSG = "Namaste! Main Gunnu hoon 🌸 Aaj main aapki kya madad kar sakti hoon?"
 
-# ==============================================================================
-# 🗂️ 5. TOP HEADER & ORGANIZED 3-DOT MENU (Tabs for Chats, Media & Features)
-# ==============================================================================
 user_sessions = db_get_user_sessions(st.session_state.user_id)
 if not user_sessions:
     db_create_session(st.session_state.user_id, st.session_state.current_session_id, "Nayi Chat")
@@ -856,9 +1030,9 @@ with col_brand:
 
 with col_menu:
     with st.popover("⋮", help="Options & Menu", use_container_width=True):
-        st.markdown("### 🌸 Gunnu Studio")
+        st.markdown(f"### 🌸 Gunnu Studio")
         
-        # Sleek 3-Tab Organization inside Menu
+        # Structured 3-Tab Menu Organization
         tab_chats, tab_media, tab_feat = st.tabs(["💬 Chats", "📸 Photo AI", "⚙️ Features"])
 
         # ----------------- TAB 1: CHATS -----------------
@@ -868,26 +1042,62 @@ with col_menu:
                 db_create_session(st.session_state.user_id, new_sid, "Nayi Chat")
                 db_save_message(new_sid, "assistant", SHORT_HELLO_MSG)
                 st.session_state.current_session_id = new_sid
+                st.session_state.pop_session_dropdown_select = new_sid
                 st.session_state.pending_adult_query = None
                 st.rerun()
 
             st.markdown("**🗂️ Purani Baatein (Past Chats):**")
             
+            # Search filter for past chats
+            search_chat_kw = st.text_input("🔍 Past chat dhoondo:", placeholder="Search title...", key="pop_chat_search_kw", label_visibility="collapsed")
+            filtered_keys = keys_list
+            if search_chat_kw.strip():
+                kw_low = search_chat_kw.strip().lower()
+                matched = [k for k in keys_list if kw_low in session_map.get(k, "").lower()]
+                if matched:
+                    filtered_keys = matched
+                else:
+                    st.caption("Koi matching chat nahi mili.")
+
+            # Defensive sync for dropdown selectbox
+            if "pop_session_dropdown_select" in st.session_state and st.session_state.pop_session_dropdown_select not in filtered_keys:
+                st.session_state.pop_session_dropdown_select = filtered_keys[0] if filtered_keys else None
+
             def handle_chat_switch():
                 chosen = st.session_state.get("pop_session_dropdown_select")
                 if chosen and chosen != st.session_state.current_session_id:
                     st.session_state.current_session_id = chosen
                     st.session_state.pending_adult_query = None
 
+            cur_sel_idx = filtered_keys.index(st.session_state.current_session_id) if st.session_state.current_session_id in filtered_keys else 0
+
             st.selectbox(
                 "Purani chat chunein:",
-                options=keys_list,
+                options=filtered_keys,
                 format_func=lambda x: session_map.get(x, x),
-                index=default_index,
+                index=cur_sel_idx,
                 label_visibility="collapsed",
                 key="pop_session_dropdown_select",
                 on_change=handle_chat_switch
             )
+
+            # ✏️ Rename Active Chat Title
+            with st.expander("✏️ Is Chat Ka Title Badlein", expanded=False):
+                cur_title_val = ""
+                for sid_i, stitle_i, _ in user_sessions:
+                    if sid_i == st.session_state.current_session_id:
+                        cur_title_val = stitle_i
+                        break
+                c_rn1, c_rn2 = st.columns([3, 2])
+                with c_rn1:
+                    new_chat_name = st.text_input("Naya Title:", value=cur_title_val, key="pop_rename_input", label_visibility="collapsed")
+                with c_rn2:
+                    if st.button("Save ✏️", use_container_width=True, key="pop_rename_btn"):
+                        if new_chat_name.strip():
+                            db_rename_session(st.session_state.current_session_id, new_chat_name.strip())
+                            st.success("Title badal gaya!")
+                            time.sleep(0.5)
+                            st.rerun()
 
             c_del1, c_del2 = st.columns(2)
             with c_del1:
@@ -901,6 +1111,7 @@ with col_menu:
                         db_create_session(st.session_state.user_id, new_sid, "Nayi Chat")
                         db_save_message(new_sid, "assistant", SHORT_HELLO_MSG)
                         st.session_state.current_session_id = new_sid
+                    st.session_state.pop_session_dropdown_select = st.session_state.current_session_id
                     st.session_state.pending_adult_query = None
                     st.rerun()
             with c_del2:
@@ -941,7 +1152,7 @@ with col_menu:
             # 2. 📄 Document & PDF Study Helper
             with st.expander("📄 Study Notes / PDF File Helper", expanded=False):
                 st.caption("Apna PDF ya Notes upload karke Gunnu se summary ya important questions poochhein:")
-                up_doc = st.file_uploader("PDF ya TXT file chunein 📄", type=["pdf", "txt"], key="pop_study_doc")
+                up_doc = st.file_uploader("PDF, TXT ya CSV file chunein 📄", type=["pdf", "txt", "csv", "md"], key="pop_study_doc")
                 if up_doc is not None:
                     doc_text = extract_text_from_file(up_doc, up_doc.name)
                     if doc_text:
@@ -973,7 +1184,42 @@ with col_menu:
                 "Digital Oil Painting",
                 "Cute Chibi Character"
             ], key="pop_gen_style")
-            gen_custom_prompt = st.text_input("Kaisi photo banwani hai?", placeholder="Jaise: Rajput warrior with golden sword...", key="pop_gen_input")
+            
+            # Trending Prompts 1-Click Buttons
+            st.caption("💡 **Trending 1-Click Ideas:**")
+            c_tp1, c_tp2 = st.columns(2)
+            with c_tp1:
+                if st.button("👑 Rajput Warrior", use_container_width=True, key="btn_prm_rajput"):
+                    p_text = "Brave Rajput King in shining golden armor on a royal horse, 8k cinematic"
+                    db_save_message(st.session_state.current_session_id, "user", f"🎨 Photo Banao: {p_text}")
+                    with st.spinner("Gunnu Rajput King ki photo bana rahi hai... 🌸🎨"):
+                        s_ok, s_msg, s_url = generate_ai_image(p_text, st.session_state.user_id, style_tag="photorealistic, 8k, cinematic lighting")
+                        db_save_message(st.session_state.current_session_id, "assistant", s_msg, image_data=s_url)
+                    st.rerun()
+                if st.button("🌸 Cute Anime Girl", use_container_width=True, key="btn_prm_anime"):
+                    p_text = "Cute 3D anime baby girl reading magical book in cherry blossom garden"
+                    db_save_message(st.session_state.current_session_id, "user", f"🎨 Photo Banao: {p_text}")
+                    with st.spinner("Gunnu anime photo bana rahi hai... 🌸🎨"):
+                        s_ok, s_msg, s_url = generate_ai_image(p_text, st.session_state.user_id, style_tag="vibrant 3D anime style, Pixar Disney animation quality")
+                        db_save_message(st.session_state.current_session_id, "assistant", s_msg, image_data=s_url)
+                    st.rerun()
+            with c_tp2:
+                if st.button("🏎️ Cyberpunk Car", use_container_width=True, key="btn_prm_car"):
+                    p_text = "Futuristic neon sports car speeding on rainy cyberpunk city highway, 8k"
+                    db_save_message(st.session_state.current_session_id, "user", f"🎨 Photo Banao: {p_text}")
+                    with st.spinner("Gunnu supercar photo bana rahi hai... 🌸🎨"):
+                        s_ok, s_msg, s_url = generate_ai_image(p_text, st.session_state.user_id, style_tag="cinematic movie shot, dramatic lighting, 8k wallpaper")
+                        db_save_message(st.session_state.current_session_id, "assistant", s_msg, image_data=s_url)
+                    st.rerun()
+                if st.button("🦁 Golden Lion", use_container_width=True, key="btn_prm_lion"):
+                    p_text = "Majestic glowing golden lion with blue eyes, dark nebula galaxy background"
+                    db_save_message(st.session_state.current_session_id, "user", f"🎨 Photo Banao: {p_text}")
+                    with st.spinner("Gunnu lion photo bana rahi hai... 🌸🎨"):
+                        s_ok, s_msg, s_url = generate_ai_image(p_text, st.session_state.user_id, style_tag="masterpiece, highly detailed, photorealistic")
+                        db_save_message(st.session_state.current_session_id, "assistant", s_msg, image_data=s_url)
+                    st.rerun()
+
+            gen_custom_prompt = st.text_input("Kaisi photo banwani hai?", placeholder="Apna prompt likhein...", key="pop_gen_input")
             if st.button("✨ Photo Generate Karein", use_container_width=True, key="pop_btn_gen_img"):
                 if gen_custom_prompt.strip():
                     style_dict = {
@@ -990,9 +1236,33 @@ with col_menu:
                         db_save_message(st.session_state.current_session_id, "assistant", s_msg, image_data=s_url)
                     st.rerun()
 
+            # 4. 🖼️ User's AI Photo Gallery
+            with st.expander("🖼️ Aapki Banayi Hui Photos Gallery", expanded=False):
+                recent_user_imgs = db_get_user_recent_images(st.session_state.user_id, limit=6)
+                if recent_user_imgs:
+                    col_g1, col_g2 = st.columns(2)
+                    for idx_img, (p_prm, p_link, p_dt) in enumerate(recent_user_imgs):
+                        target_col = col_g1 if idx_img % 2 == 0 else col_g2
+                        with target_col:
+                            st.image(p_link, use_container_width=True)
+                            st.caption(f"🎨 {p_prm[:22]}...")
+                            wa_img_share = f"https://wa.me/?text={urllib.parse.quote('🌸 Dekho maine Gunnu AI se photo banayi: ' + p_link)}"
+                            st.markdown(
+                                f"""
+                                <div style='display:flex; justify-content:space-between; gap:4px; margin-top:2px;'>
+                                    <a href='{p_link}' target='_blank' style='flex:1; text-align:center; padding:3px 4px; background:rgba(255,107,139,0.15); border:1px solid {cur_theme['border']}; border-radius:6px; color:{cur_theme['primary']}; font-size:0.72rem; text-decoration:none; font-weight:600;'>📥 HD</a>
+                                    <a href='{wa_img_share}' target='_blank' style='flex:1; text-align:center; padding:3px 4px; background:rgba(37,211,102,0.15); border:1px solid rgba(37,211,102,0.4); border-radius:6px; color:#25D366; font-size:0.72rem; text-decoration:none; font-weight:600;'>📲 Share</a>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                            st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
+                else:
+                    st.info("Aapne abhi tak koi photo nahi banayi hai. Upar prompt likh kar pehli photo banayein! 🌸🎨")
+
             st.divider()
 
-            # 4. ✨ Viral Bio & Shayari Generator
+            # 5. ✨ Viral Bio & Shayari Generator
             with st.expander("✨ 1-Click Viral Bio & Shayari", expanded=False):
                 c_sh1, c_sh2 = st.columns(2)
                 with c_sh1:
@@ -1014,7 +1284,7 @@ with col_menu:
 
             st.divider()
 
-            # 5. 🎟️ VIP Promo Code & Quota Display
+            # 6. 🎟️ VIP Promo Code & Quota Display
             used_images, total_allowed, remaining_images, bonus_photos = db_get_image_quota_info(st.session_state.user_id)
             bonus_label = f" (VIP Bonus: +{bonus_photos})" if bonus_photos > 0 else ""
             st.markdown(f"**Daily Limit (24hr):** `{used_images}/{total_allowed}` used{bonus_label}")
@@ -1059,7 +1329,32 @@ with col_menu:
 
             st.divider()
 
-            # 2. Mode Selector
+            # 2. 🎨 Studio Theme Accent Customizer
+            st.markdown("**🎨 Studio Theme Accent:**")
+            theme_keys = list(THEME_PRESETS.keys())
+            theme_default_idx = theme_keys.index(current_theme_key) if current_theme_key in theme_keys else 0
+            
+            def handle_theme_change():
+                picked = st.session_state.get("pop_theme_choice_select")
+                if picked and picked != st.session_state.accent_theme:
+                    st.session_state.accent_theme = picked
+                    db_set_user_theme(st.session_state.user_id, picked)
+
+            if "pop_theme_choice_select" in st.session_state and st.session_state.pop_theme_choice_select not in theme_keys:
+                st.session_state.pop_theme_choice_select = theme_keys[0]
+
+            st.selectbox(
+                "Gunnu Ka Color Theme:",
+                options=theme_keys,
+                index=theme_default_idx,
+                label_visibility="collapsed",
+                key="pop_theme_choice_select",
+                on_change=handle_theme_change
+            )
+
+            st.divider()
+
+            # 3. Mode Selector
             st.markdown("**🎭 Gunnu Ka Mode:**")
             st.selectbox(
                 "Kaisa jawab chahiye?",
@@ -1077,7 +1372,56 @@ with col_menu:
 
             st.divider()
 
-            # 3. Chat Notes Export
+            # 4. 🧮 Math & Science Formula Solver
+            with st.expander("🧮 Math & Science Formula Solver", expanded=False):
+                st.caption("Math ka numerical, formula ya physics problem yahan likhein:")
+                math_inp = st.text_input("Math / Science Question:", placeholder="Jaise: 2x^2 + 5x - 3 = 0 ko solve karo...", key="pop_math_input")
+                if st.button("🚀 Step-by-Step Solve Karein", use_container_width=True, type="primary", key="pop_btn_solve_math"):
+                    if math_inp.strip():
+                        sys_math = (
+                            "You are Gunnu, a patient and brilliant Math and Science tutor created by Mohit Pareek. "
+                            "Explain the solution step-by-step with formulas, calculations, and the final answer in a clear, easy-to-understand student-friendly manner in Hindi/Hinglish."
+                        )
+                        db_save_message(st.session_state.current_session_id, "user", f"🧮 [Math Solver]: {math_inp.strip()}")
+                        with st.spinner("Gunnu step-by-step solve kar rahi hai... 🧮🌸"):
+                            math_res = call_ai_engine(ACTIVE_API_KEY, f"Solve this step-by-step:\n\n{math_inp.strip()}", sys_math)
+                        db_save_message(st.session_state.current_session_id, "assistant", math_res)
+                        st.rerun()
+
+            st.divider()
+
+            # 5. ✍️ English Email & Professional Message Writer
+            with st.expander("✍️ English Email & Message Writer", expanded=False):
+                st.caption("Apna rough Hindi/Hinglish message dalein, Gunnu usko ekdum polished aur professional English me likh kar degi:")
+                rough_inp = st.text_area("Aapka message (Rough Hindi/Hinglish):", placeholder="Jaise: kal tabiyat theek nahi thi isliye main office nahi aa paunga, kal ka bacha kaam aaj pura kar dunga...", key="pop_email_writer_text", height=75)
+                email_tone = st.selectbox("Format / Tone:", [
+                    "💼 Professional Office / Work Email",
+                    "📱 Polite & Respectful WhatsApp Message",
+                    "📄 Sick Leave / College Application",
+                    "🤝 Job Application / Cold Outreach",
+                    "💬 Fluent Friendly English"
+                ], key="pop_email_writer_tone")
+                if st.button("✨ English Draft Generate Karein", use_container_width=True, type="primary", key="pop_btn_gen_email"):
+                    if rough_inp.strip():
+                        sys_improver = (
+                            "You are an expert executive communication writer created by Mohit Pareek. "
+                            "Transform the user's rough Hindi/Hinglish text into a polished, grammatically flawless, "
+                            "natural, and impactful English message matching the chosen tone. "
+                            "Provide: 1. Subject Line (if email), 2. Polished Message Body, 3. Quick 1-line Hindi meaning. "
+                            "Keep it crisp, polite, and confident."
+                        )
+                        prompt_polish = f"Convert this rough message into '{email_tone}':\n\n\"{rough_inp.strip()}\""
+                        db_save_message(st.session_state.current_session_id, "user", f"✍️ [English Writer - {email_tone}]: {rough_inp.strip()}")
+                        with st.spinner("Gunnu professional message draft kar rahi hai... ✨"):
+                            polish_res = call_ai_engine(ACTIVE_API_KEY, prompt_polish, sys_improver)
+                        db_save_message(st.session_state.current_session_id, "assistant", polish_res)
+                        st.rerun()
+                    else:
+                        st.warning("Kripya pehle apna message likhein!")
+
+            st.divider()
+
+            # 6. Chat Notes Export & Full Backup
             curr_session_msgs = db_get_session_messages(st.session_state.current_session_id)
             export_lines = [
                 "=== Gunnu AI Chat Notes - Created by Mohit Pareek ===",
@@ -1088,14 +1432,36 @@ with col_menu:
                 export_lines.append(f"{pfx}\n{m['content']}\n")
             export_data = "\n".join(export_lines)
             
-            st.download_button(
-                "📥 Chat Notes Download Karein (TXT)",
-                data=export_data,
-                file_name=f"gunnu_notes_{st.session_state.current_session_id[:8]}.txt",
-                mime="text/plain",
-                use_container_width=True,
-                key="pop_btn_download"
-            )
+            c_exp1, c_exp2 = st.columns(2)
+            with c_exp1:
+                st.download_button(
+                    "📥 Notes (TXT)",
+                    data=export_data,
+                    file_name=f"gunnu_notes_{st.session_state.current_session_id[:8]}.txt",
+                    mime="text/plain",
+                    use_container_width=True,
+                    key="pop_btn_download"
+                )
+            with c_exp2:
+                all_sessions = db_get_user_sessions(st.session_state.user_id)
+                backup_data = []
+                for s_id, s_title, s_updated in all_sessions:
+                    s_msgs = db_get_session_messages(s_id)
+                    backup_data.append({
+                        "session_id": s_id,
+                        "title": s_title,
+                        "updated_at": s_updated,
+                        "messages": s_msgs
+                    })
+                backup_json = json.dumps(backup_data, ensure_ascii=False, indent=2)
+                st.download_button(
+                    "📦 Backup (JSON)",
+                    data=backup_json,
+                    file_name=f"gunnu_backup_{st.session_state.user_id[:8]}.json",
+                    mime="application/json",
+                    use_container_width=True,
+                    key="pop_btn_full_backup"
+                )
             
             share_msg = urllib.parse.quote(
                 "🌸 Bhai maine Mohit Pareek ki banayi hui 'Gunnu AI' try ki!\n"
@@ -1106,6 +1472,7 @@ with col_menu:
 
             st.divider()
             st.checkbox("🔍 Live Web Search (Taaza Jankari)", value=True, key="pop_web_search")
+            st.caption("💡 **Voice Typing Tip:** Mobile keyboard ke Mic (🎙️) button par dabakar bolkar bhi sawaal poochh sakte hain!")
             st.caption(f"👤 User ID: `{st.session_state.user_id}`")
             st.caption("✨ Developed with ❤️ by **Mohit Pareek**")
 
@@ -1114,7 +1481,7 @@ ai_mode = st.session_state.get("pop_ai_mode_select", "🌸 All-Rounder (Default)
 enable_web_search = st.session_state.get("pop_web_search", True)
 
 # ==============================================================================
-# 💬 6. FETCH & DISPLAY RECENT CHATS (Clean Home Screen)
+# 💬 8. FETCH & DISPLAY RECENT CHATS (Clean Home Screen)
 # ==============================================================================
 active_msgs = db_get_session_messages(st.session_state.current_session_id)
 
@@ -1152,7 +1519,16 @@ for idx, msg in enumerate(st.session_state.messages):
         if msg.get("image_data"):
             if msg["image_data"].startswith("http"):
                 st.image(msg["image_data"], use_container_width=True)
-                st.markdown(f"📥 [**Photo Download Karein (HD)**]({msg['image_data']})")
+                wa_share_photo = f"https://wa.me/?text={urllib.parse.quote('🌸 Dekho maine Gunnu AI se photo banayi: ' + msg['image_data'] + '\n\nTry it: https://nquetgwc75mw3kzta5kqch.streamlit.app')}"
+                st.markdown(
+                    f"""
+                    <div style='display:flex; gap:8px; margin-top:4px;'>
+                        <a href='{msg['image_data']}' target='_blank' style='display:inline-block; padding:4px 12px; background:rgba(255,107,139,0.15); border:1px solid {cur_theme['border']}; border-radius:8px; color:{cur_theme['primary']}; text-decoration:none; font-size:0.82rem; font-weight:600;'>📥 HD Photo Download</a>
+                        <a href='{wa_share_photo}' target='_blank' style='display:inline-block; padding:4px 12px; background:rgba(37,211,102,0.15); border:1px solid rgba(37,211,102,0.4); border-radius:8px; color:#25D366; text-decoration:none; font-size:0.82rem; font-weight:600;'>📲 WhatsApp Share</a>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
             else:
                 try:
                     img_bytes = base64.b64decode(msg["image_data"])
@@ -1164,10 +1540,10 @@ for idx, msg in enumerate(st.session_state.messages):
         if msg["role"] == "assistant" and idx == len(st.session_state.messages) - 1 and len(msg["content"]) > 15:
             clean_ans_txt = re.sub(r'[*_#`]', '', msg["content"])[:280]
             wa_share_url = f"https://wa.me/?text={urllib.parse.quote('🌸 Gunnu AI Jawab: ' + clean_ans_txt + '\n\nTry it: https://nquetgwc75mw3kzta5kqch.streamlit.app')}"
-            st.markdown(f"<div style='text-align:right; margin-top:-6px;'><a href='{wa_share_url}' target='_blank' style='font-size:0.75rem; color:#ff6b8b; text-decoration:none;'>📲 <b>WhatsApp Share</b></a></div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='text-align:right; margin-top:-6px;'><a href='{wa_share_url}' target='_blank' style='font-size:0.75rem; color:{cur_theme['primary']}; text-decoration:none;'>📲 <b>WhatsApp Share</b></a></div>", unsafe_allow_html=True)
 
 # ==============================================================================
-# 🚀 7. COMPACT USER PROMPT HANDLING (Text Chat & Natural Language AI Image Trigger)
+# 🚀 9. COMPACT USER PROMPT HANDLING (Text Chat & Natural Language AI Image Trigger)
 # ==============================================================================
 if prompt := st.chat_input("Gunnu se poochhein..."):
     db_save_message(st.session_state.current_session_id, "user", prompt)
@@ -1224,7 +1600,16 @@ if prompt := st.chat_input("Gunnu se poochhein..."):
                 message_placeholder.markdown(msg_text)
                 if img_url:
                     st.image(img_url, use_container_width=True)
-                    st.markdown(f"📥 [**Photo Download Karein (HD)**]({img_url})")
+                    wa_share_photo = f"https://wa.me/?text={urllib.parse.quote('🌸 Dekho maine Gunnu AI se photo banayi: ' + img_url + '\n\nTry it: https://nquetgwc75mw3kzta5kqch.streamlit.app')}"
+                    st.markdown(
+                        f"""
+                        <div style='display:flex; gap:8px; margin-top:4px;'>
+                            <a href='{img_url}' target='_blank' style='display:inline-block; padding:4px 12px; background:rgba(255,107,139,0.15); border:1px solid {cur_theme['border']}; border-radius:8px; color:{cur_theme['primary']}; text-decoration:none; font-size:0.82rem; font-weight:600;'>📥 HD Photo Download</a>
+                            <a href='{wa_share_photo}' target='_blank' style='display:inline-block; padding:4px 12px; background:rgba(37,211,102,0.15); border:1px solid rgba(37,211,102,0.4); border-radius:8px; color:#25D366; text-decoration:none; font-size:0.82rem; font-weight:600;'>📲 WhatsApp Share</a>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
                 db_save_message(st.session_state.current_session_id, "assistant", msg_text, image_data=img_url)
                 st.session_state.messages.append({"role": "assistant", "content": msg_text, "image_data": img_url})
                 st.stop()
