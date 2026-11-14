@@ -71,6 +71,8 @@ def init_db():
         user_id TEXT PRIMARY KEY,
         name TEXT,
         theme TEXT,
+        streak INTEGER DEFAULT 1,
+        last_active_date TEXT,
         updated_at TEXT
     )
     """)
@@ -80,6 +82,16 @@ def init_db():
     if "theme" not in cols:
         try:
             c.execute("ALTER TABLE user_profiles ADD COLUMN theme TEXT")
+        except Exception:
+            pass
+    if "streak" not in cols:
+        try:
+            c.execute("ALTER TABLE user_profiles ADD COLUMN streak INTEGER DEFAULT 1")
+        except Exception:
+            pass
+    if "last_active_date" not in cols:
+        try:
+            c.execute("ALTER TABLE user_profiles ADD COLUMN last_active_date TEXT")
         except Exception:
             pass
 
@@ -98,7 +110,7 @@ def init_db():
 init_db()
 
 # ==============================================================================
-# 👤 3. USER ID & ACTIVE THEME SETUP (Early Initialization for Instant Theming)
+# 👤 3. USER ID, STREAK & ACTIVE THEME SETUP (Early Initialization)
 # ==============================================================================
 raw_u = ""
 try:
@@ -119,6 +131,52 @@ else:
 
 if "user_id" not in st.session_state:
     st.session_state.user_id = user_id
+
+def db_get_or_update_user_streak(u_id):
+    today = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=5, minutes=30))).date().isoformat()
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT streak, last_active_date FROM user_profiles WHERE user_id = ?", (u_id,))
+    row = c.fetchone()
+    
+    if not row or row[0] is None:
+        streak = 1
+        c.execute("INSERT OR REPLACE INTO user_profiles (user_id, streak, last_active_date, updated_at) VALUES (?, ?, ?, ?)",
+                  (u_id, streak, today, today))
+        conn.commit()
+        conn.close()
+        return streak
+        
+    current_streak, last_date = row[0], row[1]
+    if not last_date:
+        streak = 1
+    elif last_date == today:
+        streak = current_streak
+    else:
+        try:
+            last_d = datetime.date.fromisoformat(last_date)
+            curr_d = datetime.date.fromisoformat(today)
+            if (curr_d - last_d).days == 1:
+                streak = current_streak + 1
+            else:
+                streak = 1
+        except Exception:
+            streak = 1
+            
+    c.execute("UPDATE user_profiles SET streak = ?, last_active_date = ? WHERE user_id = ?", (streak, today, u_id))
+    conn.commit()
+    conn.close()
+    return streak
+
+user_streak_count = db_get_or_update_user_streak(st.session_state.user_id)
+if user_streak_count >= 15:
+    streak_badge = "👑 Champion"
+elif user_streak_count >= 7:
+    streak_badge = "🌟 VIP Star"
+elif user_streak_count >= 3:
+    streak_badge = "⚡ Superfan"
+else:
+    streak_badge = "🌱 Explorer"
 
 def db_get_user_theme(u_id):
     conn = get_db_connection()
@@ -283,8 +341,8 @@ st.markdown(f"""
     }}
     .gunnu-sub-text {{
         color: #8b949e;
-        font-size: 0.78rem;
-        line-height: 1.2;
+        font-size: 0.77rem;
+        line-height: 1.25;
         margin-top: 2px;
     }}
 
@@ -408,7 +466,7 @@ st.markdown(f"""
     /* 8. Buttons & Controls */
     .stButton > button {{
         border-radius: 10px !important;
-        font-size: 0.85rem !important;
+        font-size: 0.84rem !important;
         font-weight: 600 !important;
         padding: 5px 12px !important;
         transition: all 0.2s ease !important;
@@ -434,12 +492,12 @@ st.markdown(f"""
 
     /* 11. Tabs in Popover */
     div[data-testid="stTabs"] [data-baseweb="tab-list"] {{
-        gap: 8px !important;
+        gap: 6px !important;
     }}
     div[data-testid="stTabs"] button[role="tab"] {{
         border-radius: 8px !important;
-        padding: 6px 12px !important;
-        font-size: 0.84rem !important;
+        padding: 5px 10px !important;
+        font-size: 0.80rem !important;
         font-weight: 600 !important;
     }}
 
@@ -483,7 +541,7 @@ def db_save_message(session_id, role, content, image_data=None):
         c.execute("SELECT COUNT(1) FROM messages WHERE session_id = ? AND role = 'user'", (session_id,))
         if c.fetchone()[0] == 1:
             clean_title = content.strip().replace("\n", " ")
-            clean_title = re.sub(r'^(📷\s*\[Photo Attached\]:\s*|🎨\s*Photo Banao:\s*|📄\s*\[Document:[^\]]+\]:\s*|✍️\s*\[English Writer - [^\]]+\]:\s*|🧮\s*\[Math Solver\]:\s*)', '', clean_title, flags=re.IGNORECASE)
+            clean_title = re.sub(r'^(📷\s*\[Photo Attached\]:\s*|🎨\s*Photo Banao:\s*|📄\s*\[Document:[^\]]+\]:\s*|✍️\s*\[English Writer - [^\]]+\]:\s*|🧮\s*\[Math Solver\]:\s*|🔮\s*\[Rashifal\]:\s*|📖\s*\[Daily English\]:\s*|🧠\s*\[Brain Quiz\]:\s*|💼\s*\[Career Prep\]:\s*)', '', clean_title, flags=re.IGNORECASE)
             clean_title = clean_title.strip()[:26]
             title = clean_title + ("..." if len(clean_title) > 26 else "")
             if not title:
@@ -603,9 +661,12 @@ def db_redeem_promo_code(u_id, code_str):
 def db_get_image_quota_info(u_id):
     used = db_get_image_quota_count(u_id)
     bonus = db_get_user_bonus_photos(u_id)
-    total_allowed = 5 + bonus
+    streak = db_get_or_update_user_streak(u_id)
+    # Streak bonus: If streak >= 7: +2 photos; if streak >= 3: +1 photo
+    streak_bonus = 2 if streak >= 7 else (1 if streak >= 3 else 0)
+    total_allowed = 5 + bonus + streak_bonus
     remaining = max(0, total_allowed - used)
-    return used, total_allowed, remaining, bonus
+    return used, total_allowed, remaining, bonus, streak_bonus, streak
 
 # 🧠 USER NAME MEMORY SYSTEM
 def db_get_user_name(u_id):
@@ -691,7 +752,7 @@ def extract_text_from_file(file_obj, filename):
     return None
 
 # ⚡ ULTRA-FAST INSTANT ENGINE (< 0.05s Zero Latency)
-def get_instant_response(query, user_name=None):
+def get_instant_response(query, user_name=None, streak_count=1, streak_badge="🌱 Explorer"):
     q = query.strip().lower()
     q_clean = re.sub(r'[^\w\s]', '', q)
     
@@ -730,7 +791,12 @@ def get_instant_response(query, user_name=None):
         day_str = now_ist.strftime("%A")
         return f"Aaj **{day_str}**, **{date_str}** (IST) hai! 🌸✨ Kahiye, main aapki kya madad kar sakti hoon?"
 
-    # 3. User Name Queries
+    # 3. Streak queries
+    streak_queries = ["mera streak", "my streak", "streak batao", "kitne din hue", "streak status", "streak kya hai"]
+    if any(sq in q_clean for sq in streak_queries):
+        return f"Aapka streak abhi **{streak_count} din** ka hai ({streak_badge})! 🔥 Har roz Gunnu use karne par aapko daily extra photo bonus milta hai. Aise hi lagataar bane rahiye! 🌸✨"
+
+    # 4. User Name Queries
     name_check_queries = ["mera naam kya hai", "mera naam batao", "what is my name", "who am i", "do you know my name"]
     if any(nq in q_clean for nq in name_check_queries):
         if user_name:
@@ -738,7 +804,7 @@ def get_instant_response(query, user_name=None):
         else:
             return "Aapne abhi apna naam nahi bataya hai. Boliye, aapka shubh naam kya hai? (Jaise likhein: *'Mera naam Rahul hai'*) 🌸😊"
         
-    # 4. Morning / Evening Festive Greetings
+    # 5. Morning / Evening Festive Greetings
     greeting_name = f" {user_name} ji" if user_name else ""
     if any(m in q_clean for m in ["good morning", "subah bakhair", "shubh prabhat", "suprabhat"]):
         return f"Shubh Prabhat{greeting_name}! 🌸☀️ Aapka din bohot shubh aur khushiyon bhara ho. Boliye, aaj main aapki kya madad kar sakti hoon?"
@@ -747,7 +813,7 @@ def get_instant_response(query, user_name=None):
     if any(a in q_clean for a in ["good afternoon"]):
         return f"Good Afternoon{greeting_name}! 🌸 Kahiye, aaj main aapki kya help kar sakti hoon?"
 
-    # 5. General Greetings
+    # 6. General Greetings
     greetings = [
         "hi", "hii", "hiii", "hello", "helo", "hlo", "hlw", "hey", "heyy", "hy", "hyy",
         "yo", "hola", "namaste", "namaskar", "pranam", "sup",
@@ -762,7 +828,7 @@ def get_instant_response(query, user_name=None):
         ]
         return random.choice(replies)
         
-    # 6. How are you
+    # 7. How are you
     wellbeing = [
         "kaise ho", "kaisi ho", "kese ho", "kese hu", "how are you", 
         "kya haal hai", "kya hal hai", "kya chal raha hai", "all good", "sab badhiya"
@@ -770,7 +836,7 @@ def get_instant_response(query, user_name=None):
     if any(w in q_clean for w in wellbeing) and len(q_clean.split()) <= 5:
         return f"Main bilkul badhiya aur khush hoon{greeting_name}! 🌸✨ Aap bataiye, aapka din kaisa chal raha hai? Main aapki kya madad kar sakti hoon?"
         
-    # 7. Identity
+    # 8. Identity
     identity = [
         "tum kaun ho", "aap kaun ho", "who are you", "tera naam kya hai", 
         "apna naam batao", "tumhara naam kya hai", "introduce yourself", "apne baare me batao"
@@ -778,12 +844,12 @@ def get_instant_response(query, user_name=None):
     if any(i in q_clean for i in identity) and len(q_clean.split()) <= 6:
         return "Main hoon **Gunnu**, aapki apni personal AI assistant! 🌸✨ Mujhe padhai, coding, photo search, AI image generation ya kisi bhi sawaal me madad karne ke liye banaya gaya hai. Boliye, main aapke liye kya kar sakti hoon?"
         
-    # 8. Thank you
+    # 9. Thank you
     thanks = ["thank you", "thanks", "dhanyawad", "shukriya", "thx", "bahut shukriya"]
     if any(t in q_clean for t in thanks) and len(q_clean.split()) <= 4:
         return "Arey welcome! 🌸 Mujhe aapki madad karke bohot achha laga. Agar kuch aur poochhna ho toh hamesha hazir hoon!"
 
-    # 9. Bye
+    # 10. Bye
     bye = ["bye", "byee", "good night", "gn", "alvida", "tata", "see you"]
     if any(b in q_clean for b in bye) and len(q_clean.split()) <= 3:
         return "Alvida! Apna acche se dhyan rakhiyega 🌸 Phir milenge, take care! ✨"
@@ -802,7 +868,7 @@ def is_adult_query(query):
     q = query.lower()
     return any(re.search(pat, q) for pat in ADULT_KEYWORDS)
 
-# 🎨 AI IMAGE GENERATION (STRICT 5 PHOTOS / 24HR LIMIT + VIP PROMO BONUS)
+# 🎨 AI IMAGE GENERATION (STRICT 5 PHOTOS / 24HR LIMIT + VIP & STREAK BONUS)
 def is_image_gen_query(query):
     q_low = query.lower()
     patterns = [
@@ -824,7 +890,7 @@ def generate_ai_image(prompt_text, u_id, style_tag=None):
     if is_adult_query(prompt_text):
         return False, "Gunnu kisi bhi tarah ke 18+ ya ashleel photos create nahi karti. Kripya koi achhi aur creative photo banwane ko kahein! 🌸", None
 
-    used, total_allowed, remaining, bonus = db_get_image_quota_info(u_id)
+    used, total_allowed, remaining, bonus, streak_bonus, streak_val = db_get_image_quota_info(u_id)
     
     if used >= total_allowed:
         quota_exceeded_msg = (
@@ -874,7 +940,7 @@ def generate_ai_image(prompt_text, u_id, style_tag=None):
     new_used = used + 1
     new_remaining = max(0, total_allowed - new_used)
 
-    bonus_txt = f" (VIP Bonus: +{bonus})" if bonus > 0 else ""
+    bonus_txt = f" (VIP: +{bonus} | Streak Bonus: +{streak_bonus})" if (bonus > 0 or streak_bonus > 0) else ""
     success_msg = (
         f"✅ **Aapki AI Photo Taiyar Hai!** 🌸✨\n\n"
         f"*(Aaj ka quota: **{new_used}/{total_allowed}** use hua hai{bonus_txt} | Bachi: **{new_remaining}** photos)*\n\n"
@@ -1014,16 +1080,16 @@ for sid, s_title, s_time in user_sessions:
 keys_list = list(session_map.keys())
 default_index = keys_list.index(st.session_state.current_session_id) if st.session_state.current_session_id in keys_list else 0
 
-# Clean Top Header: Left = Branding, Right = 3-Dot (⋮) Menu
+# Clean Top Header: Left = Branding + Streak Badge, Right = 3-Dot (⋮) Menu
 col_brand, col_menu = st.columns([8, 2], vertical_alignment="center")
 
 with col_brand:
-    st.markdown("""
+    st.markdown(f"""
     <div class="gunnu-header-brand">
         <span class="gunnu-logo-icon">🌸</span>
         <div>
             <div class="gunnu-title-text">Gunnu AI</div>
-            <div class="gunnu-sub-text">Aapki apni intelligent assistant — Created by <b>Mohit Pareek</b> ✨</div>
+            <div class="gunnu-sub-text">Aapki apni assistant — By <b>Mohit Pareek</b> ✨ &nbsp;|&nbsp; <span style="color:#ff8e53; font-weight:700;">🔥 {user_streak_count} Din Streak ({streak_badge})</span></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1032,8 +1098,8 @@ with col_menu:
     with st.popover("⋮", help="Options & Menu", use_container_width=True):
         st.markdown(f"### 🌸 Gunnu Studio")
         
-        # Structured 3-Tab Menu Organization
-        tab_chats, tab_media, tab_feat = st.tabs(["💬 Chats", "📸 Photo AI", "⚙️ Features"])
+        # Structured 4-Tab Menu Organization
+        tab_chats, tab_media, tab_daily, tab_settings = st.tabs(["💬 Chats", "📸 Photo AI", "✨ Daily Fun", "⚙️ Settings"])
 
         # ----------------- TAB 1: CHATS -----------------
         with tab_chats:
@@ -1285,8 +1351,8 @@ with col_menu:
             st.divider()
 
             # 6. 🎟️ VIP Promo Code & Quota Display
-            used_images, total_allowed, remaining_images, bonus_photos = db_get_image_quota_info(st.session_state.user_id)
-            bonus_label = f" (VIP Bonus: +{bonus_photos})" if bonus_photos > 0 else ""
+            used_images, total_allowed, remaining_images, bonus_photos, streak_bonus_cnt, curr_streak = db_get_image_quota_info(st.session_state.user_id)
+            bonus_label = f" (VIP: +{bonus_photos} | Streak: +{streak_bonus_cnt})" if (bonus_photos > 0 or streak_bonus_cnt > 0) else ""
             st.markdown(f"**Daily Limit (24hr):** `{used_images}/{total_allowed}` used{bonus_label}")
             st.progress(min(1.0, used_images / float(total_allowed)))
             if used_images >= total_allowed:
@@ -1311,8 +1377,117 @@ with col_menu:
                         else:
                             st.error(p_msg)
 
-        # ----------------- TAB 3: FEATURES & SETTINGS -----------------
-        with tab_feat:
+        # ----------------- TAB 3: DAILY FUN & RETENTION -----------------
+        with tab_daily:
+            st.markdown(f"**🔥 Aapka Streak: `{user_streak_count} Din` ({streak_badge})**")
+            st.caption("Har roz Gunnu kholne se aapka streak badhta hai aur bonus AI photos unlock hoti hain! 🌸🎉")
+
+            # 1. 🔮 Aaj Ka Rashifal & Shubh Muhurat
+            with st.expander("🔮 Aaj Ka Rashifal & Shubh Muhurat", expanded=False):
+                st.caption("Apni Rashi chunein aur jaanein aaj ka din kaisa rahega:")
+                rashi_choice = st.selectbox("Apni Rashi Chunein:", [
+                    "♈ मेष (Mesh / Aries)",
+                    "♉ वृषभ (Vrishabh / Taurus)",
+                    "♊ मिथुन (Mithun / Gemini)",
+                    "♋ कर्क (Kark / Cancer)",
+                    "♌ सिंह (Singh / Leo)",
+                    "♍ कन्या (Kanya / Virgo)",
+                    "♎ तुला (Tula / Libra)",
+                    "♏ वृश्चिक (Vrishchik / Scorpio)",
+                    "♐ धनु (Dhanu / Sagittarius)",
+                    "♑ मकर (Makar / Capricorn)",
+                    "♒ कुंभ (Kumbh / Aquarius)",
+                    "♓ मीन (Meen / Pisces)"
+                ], key="pop_rashi_select")
+                if st.button("🌟 Aaj Ka Rashifal Dekhein", use_container_width=True, type="primary", key="pop_btn_rashi"):
+                    sys_astro = (
+                        "You are Gunnu, a positive, insightful, and culturally knowledgeable Vedic astrology guide created by Mohit Pareek. "
+                        "Provide a detailed, uplifting daily horoscope for the chosen Rashi in warm Hindi/Hinglish. "
+                        "Include: 1. 🌟 Aaj Ka Rashifal (Career, Health, Relationship, Mood), 2. 🍀 Shubh Rang (Lucky Color) & Shubh Number (Lucky Number), 3. ☀️ Shubh Muhurat / Behtareen Samay, 4. 🌸 Gunnu Ka Shubh Vichar (Thought of the Day). "
+                        "Keep it positive, practical, and inspiring."
+                    )
+                    db_save_message(st.session_state.current_session_id, "user", f"🔮 [Rashifal]: {rashi_choice} ka aaj ka rashifal batao")
+                    with st.spinner("Gunnu sitare aur grah dekh rahi hai... 🔮✨"):
+                        astro_res = call_ai_engine(ACTIVE_API_KEY, f"Mujhe {rashi_choice} ka aaj ka rashifal aur shubh vichar detail me batao.", sys_astro)
+                    db_save_message(st.session_state.current_session_id, "assistant", astro_res)
+                    st.rerun()
+
+            st.divider()
+
+            # 2. 📖 Daily English Vocabulary Booster
+            with st.expander("📖 1-Click Daily English Word", expanded=False):
+                st.caption("Har din 1 naya English word seekhein jo aapki conversation aur interviews me kaam aaye:")
+                if st.button("✨ Aaj Ka Naya Word Seekhein", use_container_width=True, key="pop_btn_vocab"):
+                    sys_vocab = (
+                        "You are Gunnu, an inspiring English communication coach created by Mohit Pareek. "
+                        "Pick a modern, high-value English word (like Resilient, Meticulous, Candid, Eloquent, Prudent, Versatile, Empathy, etc.). "
+                        "Provide: 1. 📖 Word & Correct Pronunciation (in Hindi script), 2. 💡 Exact Meaning in Simple Hindi & English, 3. 🗣️ 2 Real-Life Conversation Examples (with Hindi translation), 4. 🎯 Pro-Tip on where to use it in daily life or interviews. "
+                        "Keep it punchy, clear, and memorable!"
+                    )
+                    db_save_message(st.session_state.current_session_id, "user", "📖 [Daily English]: Aaj ka naya English word sikhao")
+                    with st.spinner("Gunnu naya word taiyar kar rahi hai... 📖🌸"):
+                        vocab_res = call_ai_engine(ACTIVE_API_KEY, "Teach me today's useful English word with examples and Hindi meaning.", sys_vocab)
+                    db_save_message(st.session_state.current_session_id, "assistant", vocab_res)
+                    st.rerun()
+
+            st.divider()
+
+            # 3. 🧠 1-Minute Brain Quiz & Paheli
+            with st.expander("🧠 1-Minute Brain Quiz & Paheli", expanded=False):
+                st.caption("Gunnu se mazedaar puzzle ya challenge poochhein aur apna dimaag check karein:")
+                quiz_cat = st.radio("Quiz Category:", [
+                    "🧩 Dimagi Paheli (Logic Riddle)",
+                    "🇮🇳 India GK & Current Affairs",
+                    "🔢 Mental Math Challenge"
+                ], key="pop_quiz_cat")
+                if st.button("🎲 Naya Challenge Shuru Karein", use_container_width=True, type="primary", key="pop_btn_quiz"):
+                    sys_quiz = (
+                        "You are Gunnu, an energetic and playful quiz master created by Mohit Pareek. "
+                        "Ask ONE fun, clever, and engaging multiple-choice question or riddle based on the chosen category in friendly Hinglish. "
+                        "Provide: 1. Sawaal / Paheli, 2. Options (A, B, C, D), 3. Chhoti si hint, 4. End by asking: 'Aapka kya jawab hai? Chat me Option A, B, C ya D likhein!' "
+                        "Do NOT reveal the answer yet; wait for the user to respond in chat!"
+                    )
+                    db_save_message(st.session_state.current_session_id, "user", f"🧠 [Brain Quiz]: {quiz_cat} ka sawaal poochho")
+                    with st.spinner("Gunnu puzzle dhoondh rahi hai... 🎲🌸"):
+                        quiz_res = call_ai_engine(ACTIVE_API_KEY, f"Ask me an engaging riddle or question for: {quiz_cat}", sys_quiz)
+                    db_save_message(st.session_state.current_session_id, "assistant", quiz_res)
+                    st.rerun()
+
+            st.divider()
+
+            # 4. 💼 Career & Job Interview Preparation
+            with st.expander("💼 Interview & Job Preparation Coach", expanded=False):
+                st.caption("Kisi bhi job role ke interview ki practice karein aur best answers jaanein:")
+                job_role_inp = st.text_input("Target Job Role:", placeholder="e.g. Sales, Python Developer, Bank PO, Digital Marketer...", key="pop_job_role_input")
+                c_int1, c_int2 = st.columns(2)
+                with c_int1:
+                    if st.button("🎯 Top 5 Questions & Answers", use_container_width=True, key="pop_btn_top_int"):
+                        target_role = job_role_inp.strip() if job_role_inp.strip() else "General Fresher Job"
+                        sys_career = (
+                            "You are Gunnu, an expert corporate HR interviewer created by Mohit Pareek. "
+                            f"Provide the top 5 most frequently asked interview questions for the role: '{target_role}'. "
+                            "For each question, provide a winning, confident model answer using the STAR method in clear Hindi/Hinglish."
+                        )
+                        db_save_message(st.session_state.current_session_id, "user", f"💼 [Career Prep]: '{target_role}' ke top 5 interview questions aur answers batao")
+                        with st.spinner("Gunnu interview prep notes bana rahi hai... 💼🌸"):
+                            int_res = call_ai_engine(ACTIVE_API_KEY, f"Give top 5 interview questions and model answers for: {target_role}", sys_career)
+                        db_save_message(st.session_state.current_session_id, "assistant", int_res)
+                        st.rerun()
+                with c_int2:
+                    if st.button("📝 Resume Highlights", use_container_width=True, key="pop_btn_resume_hl"):
+                        target_role = job_role_inp.strip() if job_role_inp.strip() else "General Professional"
+                        sys_res = (
+                            "You are Gunnu, an expert resume builder created by Mohit Pareek. "
+                            f"Provide 5 high-impact, ATS-friendly resume bullet points and key skills to highlight for the role: '{target_role}'."
+                        )
+                        db_save_message(st.session_state.current_session_id, "user", f"💼 [Career Prep]: '{target_role}' ke resume bullet points batao")
+                        with st.spinner("Gunnu resume highlights likh rahi hai... 📝🌸"):
+                            res_res = call_ai_engine(ACTIVE_API_KEY, f"Give high-impact resume bullet points for: {target_role}", sys_res)
+                        db_save_message(st.session_state.current_session_id, "assistant", res_res)
+                        st.rerun()
+
+        # ----------------- TAB 4: SETTINGS & TOOLS -----------------
+        with tab_settings:
             # 1. 🧠 User Name & Memory
             st.markdown("**👤 Aapka Naam (Personal Memory):**")
             current_name = db_get_user_name(st.session_state.user_id) or ""
@@ -1363,6 +1538,8 @@ with col_menu:
                     "🎓 Padhai & Exam Helper",
                     "💻 Coding & Tech Pro",
                     "🍳 MasterChef Recipes",
+                    "🎬 Bollywood Swag & Filmy Style",
+                    "🧘 Calm Mind & Life Advisor",
                     "😄 Mazaak & Entertainment"
                 ],
                 index=0,
@@ -1615,7 +1792,7 @@ if prompt := st.chat_input("Gunnu se poochhein..."):
                 st.stop()
 
         # ⚡ STEP C: Check Instant Engine (< 0.05 Second Response)
-        instant_reply = get_instant_response(target_prompt, user_name=user_saved_name)
+        instant_reply = get_instant_response(target_prompt, user_name=user_saved_name, streak_count=user_streak_count, streak_badge=streak_badge)
         if instant_reply:
             def fast_stream():
                 for word in instant_reply.split(" "):
@@ -1642,8 +1819,12 @@ if prompt := st.chat_input("Gunnu se poochhein..."):
             mode_instruction = "Current Mode: Senior Software Engineer. Provide clean, efficient, well-commented code, explain bugs, and outline best practices."
         elif "MasterChef" in ai_mode:
             mode_instruction = "Current Mode: Indian MasterChef. Give exact ingredient measurements, step-by-step cooking techniques, and secret taste enhancement tips."
+        elif "Bollywood" in ai_mode:
+            mode_instruction = "Current Mode: Bollywood Swag & Filmy Style. Talk with witty Bollywood flair, iconic dialogues, energetic drama, and charismatic Hinglish punchlines while staying very helpful and respectful!"
+        elif "Calm" in ai_mode:
+            mode_instruction = "Current Mode: Calm Mind & Mindfulness Coach. Talk with soothing, peaceful words, offer mental calm, emotional support, deep breathing tips, and positive perspective on life's challenges."
         elif "Mazaak" in ai_mode:
-            mode_instruction = "Current Mode: Witty & Humorous Assistant. Add playful humor, friendly jokes, and light-hearted Bollywood references while providing helpful answers."
+            mode_instruction = "Current Mode: Witty & Humorous Assistant. Add playful humor, friendly jokes, and light-hearted references while providing helpful answers."
 
         user_persona_line = f"The user's name is '{user_saved_name}'. Address them warmly and politely as '{user_saved_name} ji'." if user_saved_name else ""
 
